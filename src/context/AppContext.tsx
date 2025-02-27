@@ -5,12 +5,6 @@ import { toast } from "@/hooks/use-toast";
 
 type Difficulty = "beginner" | "intermediate" | "pro";
 
-interface LeaderboardEntry {
-  username: string;
-  solvedCount: number;
-  level: Difficulty;
-}
-
 interface AppContextType {
   darkMode: boolean;
   toggleDarkMode: () => void;
@@ -29,16 +23,7 @@ interface AppContextType {
     message: string;
     details?: string;
   } | null;
-  leaderboard: LeaderboardEntry[];
-  username: string;
-  setUsername: (name: string) => void;
   solvedQuestions: number[];
-  calculateUserProgress: () => {
-    totalSolved: number;
-    beginnerSolved: number;
-    intermediateSolved: number;
-    proSolved: number;
-  };
 }
 
 const defaultContext: AppContextType = {
@@ -55,16 +40,7 @@ const defaultContext: AppContextType = {
   isRunning: false,
   output: "",
   testResults: null,
-  leaderboard: [],
-  username: "",
-  setUsername: () => {},
   solvedQuestions: [],
-  calculateUserProgress: () => ({
-    totalSolved: 0,
-    beginnerSolved: 0,
-    intermediateSolved: 0,
-    proSolved: 0,
-  }),
 };
 
 export const AppContext = createContext<AppContextType>(defaultContext);
@@ -76,10 +52,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("darkMode");
     return saved ? JSON.parse(saved) : window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-  
-  const [username, setUsername] = useState(() => {
-    return localStorage.getItem("username") || "";
   });
 
   // Question & progress tracking
@@ -100,20 +72,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     details?: string;
   } | null>(null);
 
-  // Leaderboard
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
-    const saved = localStorage.getItem("leaderboard");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          { username: "python_master", solvedCount: 42, level: "pro" },
-          { username: "code_ninja", solvedCount: 37, level: "pro" },
-          { username: "algorithm_ace", solvedCount: 31, level: "intermediate" },
-          { username: "debug_hero", solvedCount: 25, level: "intermediate" },
-          { username: "syntax_star", solvedCount: 19, level: "beginner" },
-        ];
-  });
-
   // Filtered questions based on selected difficulty
   const filteredQuestions = allQuestions.filter(
     (question) => question.difficulty === selectedDifficulty
@@ -130,19 +88,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [darkMode]);
 
   useEffect(() => {
-    if (username) {
-      localStorage.setItem("username", username);
-    }
-  }, [username]);
-
-  useEffect(() => {
     localStorage.setItem("solvedQuestions", JSON.stringify(solvedQuestions));
-    updateLeaderboard();
   }, [solvedQuestions]);
-
-  useEffect(() => {
-    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-  }, [leaderboard]);
 
   // Set initial user code when selecting a question
   useEffect(() => {
@@ -172,53 +119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDarkMode((prev) => !prev);
   };
 
-  // Calculate user progress
-  const calculateUserProgress = () => {
-    const beginnerCount = allQuestions.filter(q => q.difficulty === "beginner" && solvedQuestions.includes(q.id)).length;
-    const intermediateCount = allQuestions.filter(q => q.difficulty === "intermediate" && solvedQuestions.includes(q.id)).length;
-    const proCount = allQuestions.filter(q => q.difficulty === "pro" && solvedQuestions.includes(q.id)).length;
-    
-    return {
-      totalSolved: solvedQuestions.length,
-      beginnerSolved: beginnerCount,
-      intermediateSolved: intermediateCount,
-      proSolved: proCount
-    };
-  };
-
-  // Update leaderboard
-  const updateLeaderboard = () => {
-    if (!username) return;
-    
-    const progress = calculateUserProgress();
-    let level: Difficulty = "beginner";
-    
-    if (progress.proSolved > 5) {
-      level = "pro";
-    } else if (progress.intermediateSolved > 5) {
-      level = "intermediate";
-    }
-    
-    // Update or add the user to the leaderboard
-    const existingUserIndex = leaderboard.findIndex(entry => entry.username === username);
-    
-    if (existingUserIndex !== -1) {
-      const updatedLeaderboard = [...leaderboard];
-      updatedLeaderboard[existingUserIndex] = {
-        ...updatedLeaderboard[existingUserIndex],
-        solvedCount: progress.totalSolved,
-        level
-      };
-      setLeaderboard(updatedLeaderboard);
-    } else if (progress.totalSolved > 0) {
-      setLeaderboard(prev => [
-        ...prev,
-        { username, solvedCount: progress.totalSolved, level }
-      ]);
-    }
-  };
-
-  // Mock function to run the user's code
+  // Run the user's code against test cases
   const runUserCode = async () => {
     if (!selectedQuestion) return;
     
@@ -234,26 +135,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Here we'll simulate the evaluation with some mock output
       
       let mockOutput = "Running test cases...\n";
-      const failedTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * selectedQuestion.testCases.length) : -1;
       
-      selectedQuestion.testCases.forEach((testCase, index) => {
-        const passed = failedTestCase !== index;
+      // Show only a subset of test cases (public test cases)
+      const publicTestCases = selectedQuestion.testCases.slice(0, Math.min(2, selectedQuestion.testCases.length));
+      const hiddenTestCases = selectedQuestion.testCases.slice(Math.min(2, selectedQuestion.testCases.length));
+      
+      // For demo purposes, we'll randomly pass or fail test cases
+      // In a real app, this would execute the code against the test cases
+      const failedPublicTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * publicTestCases.length) : -1;
+      
+      // Show results for public test cases
+      publicTestCases.forEach((testCase, index) => {
+        const passed = failedPublicTestCase !== index;
         mockOutput += `Test ${index + 1}: ${passed ? "✓ Passed" : "✗ Failed"}\n`;
         
         if (!passed) {
+          mockOutput += `  Input: ${testCase.input}\n`;
           mockOutput += `  Expected: ${testCase.expected}\n`;
           mockOutput += `  Got: Something different\n`;
+        } else {
+          mockOutput += `  Input: ${testCase.input}\n`;
+          mockOutput += `  Output: ${testCase.expected}\n`;
         }
       });
       
-      const allPassed = failedTestCase === -1;
+      // For hidden test cases, just show that they exist but not their details
+      if (hiddenTestCases.length > 0) {
+        mockOutput += `\nRunning ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
+        
+        // For demo, randomly fail a hidden test case
+        const failedHiddenTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * hiddenTestCases.length) : -1;
+        
+        if (failedHiddenTestCase !== -1) {
+          mockOutput += `Hidden test ${failedHiddenTestCase + 1}: ✗ Failed\n`;
+          failedPublicTestCase = 0; // Force a failure to show in the UI
+        } else {
+          mockOutput += `All hidden tests passed!\n`;
+        }
+      }
+      
+      const allPassed = failedPublicTestCase === -1;
       
       setOutput(mockOutput);
       
       setTestResults({
         passed: allPassed,
         message: allPassed ? "All tests passed! Great job!" : "Some tests failed. Keep trying!",
-        details: allPassed ? undefined : `Failed on test case ${failedTestCase + 1}`
+        details: allPassed ? undefined : `Check the output for details on the failed test case.`
       });
       
       // If all tests passed and this question wasn't already solved, mark it as solved
@@ -294,11 +222,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isRunning,
         output,
         testResults,
-        leaderboard,
-        username,
-        setUsername,
         solvedQuestions,
-        calculateUserProgress,
       }}
     >
       {children}

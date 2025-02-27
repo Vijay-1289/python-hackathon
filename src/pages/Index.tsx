@@ -1,11 +1,10 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { AppProvider } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
 import QuestionPanel from "@/components/QuestionPanel";
 import CodeEditor from "@/components/CodeEditor";
 import TestResults from "@/components/TestResults";
-import Leaderboard from "@/components/Leaderboard";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -27,7 +26,7 @@ const Index = () => {
         
         <footer className="border-t py-4 text-center text-sm text-muted-foreground">
           <div className="container">
-            Practice Palace - Python Coding Platform
+            Python Challenge - Practice your Python skills
           </div>
         </footer>
       </div>
@@ -41,13 +40,13 @@ const DesktopLayout = () => {
       direction="horizontal"
       className="min-h-[calc(100vh-10rem)]"
     >
-      <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+      <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
         <QuestionPanel />
       </ResizablePanel>
       
       <ResizableHandle withHandle />
       
-      <ResizablePanel defaultSize={55} minSize={40}>
+      <ResizablePanel defaultSize={75} minSize={40}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={70} minSize={30}>
             <CodeEditor />
@@ -60,18 +59,12 @@ const DesktopLayout = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
-      
-      <ResizableHandle withHandle />
-      
-      <ResizablePanel defaultSize={25} minSize={15} maxSize={30}>
-        <Leaderboard />
-      </ResizablePanel>
     </ResizablePanelGroup>
   );
 };
 
 const MobileLayout = () => {
-  const [activeTab, setActiveTab] = React.useState<"questions" | "editor" | "results" | "leaderboard">("questions");
+  const [activeTab, setActiveTab] = React.useState<"questions" | "editor" | "results">("questions");
   
   return (
     <div className="space-y-4">
@@ -94,19 +87,12 @@ const MobileLayout = () => {
         >
           Output
         </button>
-        <button
-          className={`flex-1 p-2 text-center rounded ${activeTab === "leaderboard" ? "bg-primary text-primary-foreground" : ""}`}
-          onClick={() => setActiveTab("leaderboard")}
-        >
-          Leaderboard
-        </button>
       </div>
       
       <div className="h-[calc(100vh-15rem)]">
         {activeTab === "questions" && <QuestionPanel />}
         {activeTab === "editor" && <CodeEditor />}
         {activeTab === "results" && <TestResults />}
-        {activeTab === "leaderboard" && <Leaderboard />}
       </div>
     </div>
   );
