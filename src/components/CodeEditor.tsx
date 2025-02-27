@@ -59,6 +59,16 @@ const CodeEditor = () => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   
+  // Set editor content when userCode changes
+  useEffect(() => {
+    if (editorRef.current && userCode !== undefined) {
+      // Only update if the content has actually changed
+      if (editorRef.current.innerText !== userCode) {
+        editorRef.current.innerText = userCode;
+      }
+    }
+  }, [userCode]);
+  
   // Prevent copy-paste in the editor
   useEffect(() => {
     const preventCopyPaste = (e: ClipboardEvent) => {
@@ -216,36 +226,35 @@ const CodeEditor = () => {
         <div className="mt-2">
           <h3 className="text-xs font-medium mb-1">Test Cases:</h3>
           <div className="space-y-1">
-            {selectedQuestion.testCases.map((testCase, index) => (
+            {selectedQuestion.testCases.slice(0, 2).map((testCase, index) => (
               <div key={index} className="text-xs bg-secondary p-2 rounded">
                 <span className="text-code-function">{testCase.input}</span>
                 <span className="mx-2">→</span>
                 <span className="text-code-string">{testCase.expected}</span>
               </div>
             ))}
+            {selectedQuestion.testCases.length > 2 && (
+              <div className="text-xs text-muted-foreground">
+                + {selectedQuestion.testCases.length - 2} more hidden test cases
+              </div>
+            )}
           </div>
         </div>
       </div>
       
-      <ScrollArea className="flex-1">
-        <div 
-          className="editor-wrapper" 
-          ref={editorRef}
-          contentEditable
-          onInput={handleEditorInput}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setIsEditorFocused(true)}
-          onBlur={() => setIsEditorFocused(false)}
-          dangerouslySetInnerHTML={{ __html: "" }}
-          suppressContentEditableWarning
-        />
-      </ScrollArea>
-      
-      <div 
-        className="editor-content hidden" 
-        aria-hidden="true"
-      >
-        {highlightSyntax(userCode)}
+      <div className="flex-1 overflow-hidden relative">
+        <ScrollArea className="h-full">
+          <div 
+            className="editor-wrapper" 
+            ref={editorRef}
+            contentEditable
+            onInput={handleEditorInput}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsEditorFocused(true)}
+            onBlur={() => setIsEditorFocused(false)}
+            suppressContentEditableWarning
+          ></div>
+        </ScrollArea>
       </div>
     </div>
   );

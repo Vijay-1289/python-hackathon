@@ -107,7 +107,11 @@
   }
 
   .editor-wrapper {
-    @apply min-h-[300px] bg-code-background text-code-foreground rounded-md border border-code-border p-4 font-mono text-sm relative overflow-hidden transition-all duration-300;
+    @apply min-h-[300px] h-full bg-code-background text-code-foreground rounded-md border border-code-border p-4 font-mono text-sm relative overflow-hidden transition-all duration-300;
+    white-space: pre-wrap;
+    word-break: keep-all;
+    line-height: 1.5;
+    tab-size: 4;
   }
 
   .editor-wrapper:focus-within {
@@ -177,6 +181,31 @@
   
   .difficulty-badge-pro {
     @apply bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200;
+  }
+
+  .text-code-comment {
+    color: hsl(var(--code-comment));
+  }
+
+  .text-code-keyword {
+    color: hsl(var(--code-keyword));
+    font-weight: 500;
+  }
+
+  .text-code-string {
+    color: hsl(var(--code-string));
+  }
+
+  .text-code-function {
+    color: hsl(var(--code-function));
+  }
+
+  .text-code-operator {
+    color: hsl(var(--code-operator));
+  }
+  
+  .question-count {
+    @apply ml-2 bg-secondary/80 text-secondary-foreground text-xs rounded-full px-2 py-0.5;
   }
 }
 
