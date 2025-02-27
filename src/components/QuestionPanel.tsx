@@ -1,12 +1,13 @@
 
 import React, { useState, useMemo } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { SearchIcon, FilterIcon, CheckIcon } from "lucide-react";
+import { SearchIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { allQuestions } from "@/data/questions";
 
 const QuestionPanel = () => {
   const { 
@@ -36,8 +37,6 @@ const QuestionPanel = () => {
       pro: 0
     };
     
-    // Count all questions in allQuestions, not just filtered
-    const allQuestions = require("@/data/questions").allQuestions;
     allQuestions.forEach(question => {
       counts[question.difficulty]++;
     });
@@ -316,13 +315,8 @@ const QuestionGroup: React.FC<QuestionGroupProps> = ({
 }) => {
   if (questions.length === 0) return null;
   
-  // Find the actual complete question objects from the data file
-  // This ensures we're always passing the full question object to setSelectedQuestion
-  const { allQuestions } = require("@/data/questions");
-  
   const handleSelectQuestion = (question) => {
     console.log("Selecting question ID:", question.id);
-    // Find the full question object from allQuestions
     const fullQuestion = allQuestions.find(q => q.id === question.id);
     if (fullQuestion) {
       console.log("Found full question:", fullQuestion.title);
