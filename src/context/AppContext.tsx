@@ -94,6 +94,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Set initial user code when selecting a question
   useEffect(() => {
     if (selectedQuestion) {
+      console.log("Selected question:", selectedQuestion.id, selectedQuestion.title);
       const savedCode = localStorage.getItem(`userCode_${selectedQuestion.id}`);
       if (savedCode) {
         setUserCode(savedCode);

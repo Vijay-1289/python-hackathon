@@ -69,23 +69,7 @@ const CodeEditor = () => {
     }
   }, [userCode]);
   
-  // Prevent copy-paste in the editor
-  useEffect(() => {
-    const preventCopyPaste = (e: ClipboardEvent) => {
-      if (isEditorFocused) {
-        e.preventDefault();
-        return false;
-      }
-    };
-    
-    document.addEventListener("copy", preventCopyPaste);
-    document.addEventListener("paste", preventCopyPaste);
-    
-    return () => {
-      document.removeEventListener("copy", preventCopyPaste);
-      document.removeEventListener("paste", preventCopyPaste);
-    };
-  }, [isEditorFocused]);
+  // Allow copy-paste in the editor (removed prevention)
   
   // Handle keyboard input in the editor
   const handleKeyDown = (e: React.KeyboardEvent) => {

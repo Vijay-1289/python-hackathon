@@ -36,12 +36,14 @@ const QuestionPanel = () => {
       pro: 0
     };
     
-    filteredQuestions.forEach(question => {
+    // Count all questions in allQuestions, not just filtered
+    const allQuestions = require("@/data/questions").allQuestions;
+    allQuestions.forEach(question => {
       counts[question.difficulty]++;
     });
     
     return counts;
-  }, [filteredQuestions]);
+  }, []);
   
   return (
     <div className="flex flex-col h-full border rounded-lg bg-card">
@@ -57,7 +59,11 @@ const QuestionPanel = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="beginner" className="flex-1 flex flex-col">
+      <Tabs 
+        defaultValue={selectedDifficulty} 
+        value={selectedDifficulty}
+        className="flex-1 flex flex-col"
+      >
         <div className="px-4 pt-2">
           <TabsList className="w-full">
             <TabsTrigger 
@@ -119,14 +125,8 @@ const QuestionPanel = () => {
 };
 
 interface QuestionsTabProps {
-  questions: Array<{
-    id: number;
-    title: string;
-    difficulty: string;
-  }>;
-  selectedQuestion: {
-    id: number;
-  } | null;
+  questions: Array<any>;
+  selectedQuestion: any;
   setSelectedQuestion: (question: any) => void;
   solvedQuestions: number[];
 }
@@ -301,14 +301,8 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
 
 interface QuestionGroupProps {
   title: string;
-  questions: Array<{
-    id: number;
-    title: string;
-    difficulty: string;
-  }>;
-  selectedQuestion: {
-    id: number;
-  } | null;
+  questions: Array<any>;
+  selectedQuestion: any;
   setSelectedQuestion: (question: any) => void;
   solvedQuestions: number[];
 }
@@ -322,6 +316,22 @@ const QuestionGroup: React.FC<QuestionGroupProps> = ({
 }) => {
   if (questions.length === 0) return null;
   
+  // Find the actual complete question objects from the data file
+  // This ensures we're always passing the full question object to setSelectedQuestion
+  const { allQuestions } = require("@/data/questions");
+  
+  const handleSelectQuestion = (question) => {
+    console.log("Selecting question ID:", question.id);
+    // Find the full question object from allQuestions
+    const fullQuestion = allQuestions.find(q => q.id === question.id);
+    if (fullQuestion) {
+      console.log("Found full question:", fullQuestion.title);
+      setSelectedQuestion(fullQuestion);
+    } else {
+      console.error("Could not find full question with ID:", question.id);
+    }
+  };
+  
   return (
     <div className="space-y-2">
       <h3 className="font-medium text-sm text-muted-foreground">{title} ({questions.length})</h3>
@@ -334,7 +344,7 @@ const QuestionGroup: React.FC<QuestionGroupProps> = ({
               "w-full justify-start text-left font-normal h-auto py-2 px-3",
               selectedQuestion?.id === question.id && "bg-accent"
             )}
-            onClick={() => setSelectedQuestion(question)}
+            onClick={() => handleSelectQuestion(question)}
           >
             <div className="flex items-center justify-between w-full">
               <span className="text-sm">{question.title}</span>

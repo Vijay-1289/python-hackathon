@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { AppProvider } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
 import QuestionPanel from "@/components/QuestionPanel";
@@ -10,6 +10,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  
+  // Add console logs to help debug
+  useEffect(() => {
+    console.log("Index component mounted");
+  }, []);
   
   return (
     <AppProvider>
