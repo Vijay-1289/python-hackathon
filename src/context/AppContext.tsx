@@ -142,7 +142,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // For demo purposes, we'll randomly pass or fail test cases
       // In a real app, this would execute the code against the test cases
-      const failedPublicTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * publicTestCases.length) : -1;
+      let failedPublicTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * publicTestCases.length) : -1;
       
       // Show results for public test cases
       publicTestCases.forEach((testCase, index) => {
@@ -168,7 +168,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         if (failedHiddenTestCase !== -1) {
           mockOutput += `Hidden test ${failedHiddenTestCase + 1}: ✗ Failed\n`;
-          failedPublicTestCase = 0; // Force a failure to show in the UI
+          failedPublicTestCase = 0; // This is fine now as we changed it to 'let'
         } else {
           mockOutput += `All hidden tests passed!\n`;
         }
