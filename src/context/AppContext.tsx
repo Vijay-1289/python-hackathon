@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
 import { toast } from "@/hooks/use-toast";
@@ -141,6 +140,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDarkMode((prev) => !prev);
   };
 
+  // Function to evaluate Python code
+  const evaluatePythonCode = (code: string, testCase: { input: string, expected: string }) => {
+    try {
+      // Extract function name from input string (e.g., "add_numbers(5, 7)" -> "add_numbers")
+      const functionName = testCase.input.split("(")[0].trim();
+      
+      // Create a full test script
+      const testScript = `
+${code}
+
+# Run the test case
+result = ${testCase.input}
+print(str(result))
+`;
+      
+      // In a real application, this would send the test script to a backend
+      // Here we're simulating execution client-side for demonstration
+      
+      // For demo purposes, we'll do a very basic check
+      // This is not real Python execution! Just a demo approximation
+      let result = "undefined";
+      
+      // Very basic string evaluation for simple cases
+      // WARNING: This is NOT secure or comprehensive Python execution
+      // A real implementation would need a backend service
+      if (code.includes(`def ${functionName}`)) {
+        // Extract logic for specific functions to simulate their behavior
+        // This is a demonstration and won't work for all functions
+        if (functionName === "hello_world") {
+          result = '"Hello, World!"';
+        } 
+        else if (functionName === "add_numbers" && testCase.input.includes("(")) {
+          const params = testCase.input.split("(")[1].split(")")[0].split(",");
+          if (params.length === 2) {
+            const a = parseInt(params[0].trim());
+            const b = parseInt(params[1].trim());
+            result = String(a + b);
+          }
+        }
+        else if (functionName === "is_even") {
+          const params = testCase.input.split("(")[1].split(")")[0].trim();
+          const num = parseInt(params);
+          result = num % 2 === 0 ? '"Even"' : '"Odd"';
+        }
+        // Add more function implementations as needed
+      }
+      
+      // Compare result with expected
+      return {
+        result: result.replace(/^"|"$/g, ''), // Remove quotes if present
+        passed: result.replace(/^"|"$/g, '') === testCase.expected.replace(/^"|"$/g, ''),
+        error: null
+      };
+    } catch (error) {
+      return {
+        result: "",
+        passed: false,
+        error: error instanceof Error ? error.message : "Unknown error"
+      };
+    }
+  };
+
   // Run the user's code against test cases
   const runUserCode = async () => {
     if (!selectedQuestion) return;
@@ -149,65 +210,79 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTestResults(null);
     setOutput("");
     
-    // Simulate code execution delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
     try {
       // In a real app, this would send the code to a backend for evaluation
-      // Here we'll simulate the evaluation with some mock output
+      // Here we'll simulate code execution with our basic evaluator
       
       let mockOutput = "Running test cases...\n";
+      let allTestsPassed = true;
+      let firstFailedTestDetails = "";
       
-      // Show only a subset of test cases (public test cases)
+      // Divide test cases into public and hidden
       const publicTestCases = selectedQuestion.testCases.slice(0, Math.min(2, selectedQuestion.testCases.length));
       const hiddenTestCases = selectedQuestion.testCases.slice(Math.min(2, selectedQuestion.testCases.length));
       
-      // For demo purposes, we'll randomly pass or fail test cases
-      // In a real app, this would execute the code against the test cases
-      let failedPublicTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * publicTestCases.length) : -1;
-      
-      // Show results for public test cases
-      publicTestCases.forEach((testCase, index) => {
-        const passed = failedPublicTestCase !== index;
-        mockOutput += `Test ${index + 1}: ${passed ? "✓ Passed" : "✗ Failed"}\n`;
+      // Process public test cases
+      for (let i = 0; i < publicTestCases.length; i++) {
+        const testCase = publicTestCases[i];
+        const evaluation = evaluatePythonCode(userCode, testCase);
         
-        if (!passed) {
+        if (evaluation.passed) {
+          mockOutput += `Test ${i + 1}: ✓ Passed\n`;
+          mockOutput += `  Input: ${testCase.input}\n`;
+          mockOutput += `  Output: ${evaluation.result}\n`;
+        } else {
+          allTestsPassed = false;
+          mockOutput += `Test ${i + 1}: ✗ Failed\n`;
           mockOutput += `  Input: ${testCase.input}\n`;
           mockOutput += `  Expected: ${testCase.expected}\n`;
-          mockOutput += `  Got: Something different\n`;
-        } else {
-          mockOutput += `  Input: ${testCase.input}\n`;
-          mockOutput += `  Output: ${testCase.expected}\n`;
+          mockOutput += `  Got: ${evaluation.result}\n`;
+          
+          if (!firstFailedTestDetails) {
+            firstFailedTestDetails = `Failed on input "${testCase.input}" - Expected: ${testCase.expected}, Got: ${evaluation.result}`;
+          }
+          
+          if (evaluation.error) {
+            mockOutput += `  Error: ${evaluation.error}\n`;
+          }
         }
-      });
+      }
       
-      // For hidden test cases, just show that they exist but not their details
-      if (hiddenTestCases.length > 0) {
+      // Process hidden test cases
+      if (hiddenTestCases.length > 0 && allTestsPassed) {
         mockOutput += `\nRunning ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
         
-        // For demo, randomly fail a hidden test case
-        const failedHiddenTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * hiddenTestCases.length) : -1;
+        for (let i = 0; i < hiddenTestCases.length; i++) {
+          const testCase = hiddenTestCases[i];
+          const evaluation = evaluatePythonCode(userCode, testCase);
+          
+          if (!evaluation.passed) {
+            allTestsPassed = false;
+            mockOutput += `Hidden test ${i + 1}: ✗ Failed\n`;
+            
+            if (!firstFailedTestDetails) {
+              firstFailedTestDetails = `Failed on a hidden test case. Make sure your solution handles all possible inputs correctly.`;
+            }
+            
+            break;  // Stop after first failed hidden test
+          }
+        }
         
-        if (failedHiddenTestCase !== -1) {
-          mockOutput += `Hidden test ${failedHiddenTestCase + 1}: ✗ Failed\n`;
-          failedPublicTestCase = 0; // Ensure test is marked as failed if hidden test fails
-        } else {
+        if (allTestsPassed) {
           mockOutput += `All hidden tests passed!\n`;
         }
       }
       
-      const allPassed = failedPublicTestCase === -1;
-      
       setOutput(mockOutput);
       
       setTestResults({
-        passed: allPassed,
-        message: allPassed ? "All tests passed! Great job!" : "Some tests failed. Keep trying!",
-        details: allPassed ? undefined : `Check the output for details on the failed test case.`
+        passed: allTestsPassed,
+        message: allTestsPassed ? "All tests passed! Great job!" : "Some tests failed. Keep trying!",
+        details: allTestsPassed ? undefined : firstFailedTestDetails
       });
       
       // If all tests passed and this question wasn't already solved, mark it as solved
-      if (allPassed && !solvedQuestions.includes(selectedQuestion.id)) {
+      if (allTestsPassed && !solvedQuestions.includes(selectedQuestion.id)) {
         setSolvedQuestions(prev => [...prev, selectedQuestion.id]);
         toast({
           title: "Question Solved!",
