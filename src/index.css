@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -106,22 +107,23 @@
   }
 
   .editor-wrapper {
-    @apply rounded-md border border-code-border/50 overflow-hidden transition-all duration-300;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    @apply min-h-[300px] h-full bg-code-background text-code-foreground rounded-md border border-code-border p-4 font-mono text-sm relative overflow-hidden transition-all duration-300;
+    white-space: pre-wrap;
+    word-break: keep-all;
+    line-height: 1.5;
+    tab-size: 4;
   }
 
   .editor-wrapper:focus-within {
-    @apply ring-1 ring-primary/30 border-primary/30;
-    box-shadow: 0 0 0 4px rgba(147, 112, 219, 0.08);
+    @apply ring-2 ring-primary/50;
   }
 
   .code-line {
-    @apply flex min-h-[1.6rem] items-start;
+    @apply flex min-h-[1.5rem];
   }
 
   .code-line-number {
-    @apply text-muted-foreground mr-4 select-none text-right w-[30px] shrink-0 opacity-60 text-xs;
-    padding-top: 2px;
+    @apply text-muted-foreground mr-4 select-none text-right w-[30px] shrink-0;
   }
 
   .animate-in {

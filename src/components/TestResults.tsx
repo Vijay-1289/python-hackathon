@@ -49,6 +49,7 @@ const TestResults = () => {
                       <li>Test your code with edge cases (zero, negative numbers, empty strings, etc.)</li>
                       <li>Check for off-by-one errors</li>
                       <li>Ensure your function returns the correct data type</li>
+                      <li>Remember that hidden test cases check additional scenarios</li>
                     </ul>
                   </div>
                 )}
@@ -59,7 +60,7 @@ const TestResults = () => {
           <div className="text-muted-foreground text-sm flex flex-col items-center justify-center h-full p-4">
             <TerminalIcon className="h-12 w-12 mb-4 text-muted-foreground/50" />
             <p className="text-center">Run your code to see the test results here</p>
-            <p className="text-center text-xs mt-2">Your code will be tested against the test cases</p>
+            <p className="text-center text-xs mt-2">Your code will be tested against all test cases, including hidden ones</p>
             <p className="text-center text-xs mt-1">Make sure your solution works for all possible valid inputs</p>
           </div>
         )}
