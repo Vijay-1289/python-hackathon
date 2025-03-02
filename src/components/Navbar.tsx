@@ -15,7 +15,7 @@ const Navbar = () => {
           <h1 className="text-xl font-medium">Python Challenge</h1>
           <div className="hidden md:flex items-center gap-2 ml-2">
             <div className="px-2 py-1 bg-secondary rounded-md text-xs font-medium text-secondary-foreground">
-              200 Python Questions
+              30 Python Questions
             </div>
             <div className="text-xs text-muted-foreground">
               Beginner • Intermediate • Pro
