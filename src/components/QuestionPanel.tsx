@@ -1,13 +1,13 @@
-
 import React, { useState, useMemo } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { SearchIcon, CheckIcon } from "lucide-react";
+import { SearchIcon, CheckIcon, LockIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { allQuestions } from "@/data/questions";
+import { toast } from "@/hooks/use-toast";
 
 const QuestionPanel = () => {
   const { 
@@ -16,7 +16,8 @@ const QuestionPanel = () => {
     filteredQuestions, 
     selectedQuestion, 
     setSelectedQuestion,
-    solvedQuestions
+    solvedQuestions,
+    isQuestionLocked
   } = useAppContext();
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +72,11 @@ const QuestionPanel = () => {
               onClick={() => setSelectedDifficulty("beginner")}
             >
               Beginner
-              <span className="question-count">{questionCounts.beginner}</span>
+              <span className="ml-1 text-xs rounded-full bg-primary/20 px-2 py-0.5">
+                {solvedQuestions.filter(id => 
+                  allQuestions.find(q => q.id === id)?.difficulty === "beginner"
+                ).length}/{questionCounts.beginner}
+              </span>
             </TabsTrigger>
             <TabsTrigger 
               value="intermediate" 
@@ -79,7 +84,11 @@ const QuestionPanel = () => {
               onClick={() => setSelectedDifficulty("intermediate")}
             >
               Intermediate
-              <span className="question-count">{questionCounts.intermediate}</span>
+              <span className="ml-1 text-xs rounded-full bg-primary/20 px-2 py-0.5">
+                {solvedQuestions.filter(id => 
+                  allQuestions.find(q => q.id === id)?.difficulty === "intermediate"
+                ).length}/{questionCounts.intermediate}
+              </span>
             </TabsTrigger>
             <TabsTrigger 
               value="pro" 
@@ -87,7 +96,11 @@ const QuestionPanel = () => {
               onClick={() => setSelectedDifficulty("pro")}
             >
               Pro
-              <span className="question-count">{questionCounts.pro}</span>
+              <span className="ml-1 text-xs rounded-full bg-primary/20 px-2 py-0.5">
+                {solvedQuestions.filter(id => 
+                  allQuestions.find(q => q.id === id)?.difficulty === "pro"
+                ).length}/{questionCounts.pro}
+              </span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -99,6 +112,7 @@ const QuestionPanel = () => {
               selectedQuestion={selectedQuestion} 
               setSelectedQuestion={setSelectedQuestion}
               solvedQuestions={solvedQuestions}
+              isQuestionLocked={isQuestionLocked}
             />
           </TabsContent>
           <TabsContent value="intermediate" className="h-full m-0">
@@ -107,6 +121,7 @@ const QuestionPanel = () => {
               selectedQuestion={selectedQuestion}
               setSelectedQuestion={setSelectedQuestion}
               solvedQuestions={solvedQuestions}
+              isQuestionLocked={isQuestionLocked}
             />
           </TabsContent>
           <TabsContent value="pro" className="h-full m-0">
@@ -115,6 +130,7 @@ const QuestionPanel = () => {
               selectedQuestion={selectedQuestion}
               setSelectedQuestion={setSelectedQuestion}
               solvedQuestions={solvedQuestions}
+              isQuestionLocked={isQuestionLocked}
             />
           </TabsContent>
         </div>
@@ -128,13 +144,15 @@ interface QuestionsTabProps {
   selectedQuestion: any;
   setSelectedQuestion: (question: any) => void;
   solvedQuestions: number[];
+  isQuestionLocked: (questionId: number) => boolean;
 }
 
 const QuestionsTab: React.FC<QuestionsTabProps> = ({ 
   questions, 
   selectedQuestion, 
   setSelectedQuestion,
-  solvedQuestions
+  solvedQuestions,
+  isQuestionLocked
 }) => {
   // Group questions by categories
   const groupedQuestions = useMemo(() => {
@@ -186,6 +204,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
             
@@ -196,6 +215,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
             
@@ -206,6 +226,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
             
@@ -216,6 +237,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
           </>
@@ -230,6 +252,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
             
@@ -240,6 +263,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
           </>
@@ -254,6 +278,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
             
@@ -264,6 +289,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
             
@@ -274,12 +300,12 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
                 selectedQuestion={selectedQuestion}
                 setSelectedQuestion={setSelectedQuestion}
                 solvedQuestions={solvedQuestions}
+                isQuestionLocked={isQuestionLocked}
               />
             )}
           </>
         )}
         
-        {/* If there are any questions that don't fit into the categories, show them in a separate group */}
         {questions.filter(q => 
           !Object.values(groupedQuestions).flat().some(gq => gq.id === q.id)
         ).length > 0 && (
@@ -291,6 +317,7 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
             selectedQuestion={selectedQuestion}
             setSelectedQuestion={setSelectedQuestion}
             solvedQuestions={solvedQuestions}
+            isQuestionLocked={isQuestionLocked}
           />
         )}
       </div>
@@ -304,6 +331,7 @@ interface QuestionGroupProps {
   selectedQuestion: any;
   setSelectedQuestion: (question: any) => void;
   solvedQuestions: number[];
+  isQuestionLocked: (questionId: number) => boolean;
 }
 
 const QuestionGroup: React.FC<QuestionGroupProps> = ({
@@ -311,11 +339,21 @@ const QuestionGroup: React.FC<QuestionGroupProps> = ({
   questions,
   selectedQuestion,
   setSelectedQuestion,
-  solvedQuestions
+  solvedQuestions,
+  isQuestionLocked
 }) => {
   if (questions.length === 0) return null;
   
   const handleSelectQuestion = (question) => {
+    if (isQuestionLocked(question.id)) {
+      toast({
+        title: "Question Locked",
+        description: "You need to solve the previous question first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     console.log("Selecting question ID:", question.id);
     const fullQuestion = allQuestions.find(q => q.id === question.id);
     if (fullQuestion) {
@@ -326,28 +364,41 @@ const QuestionGroup: React.FC<QuestionGroupProps> = ({
     }
   };
   
+  const sortedQuestions = [...questions].sort((a, b) => a.id - b.id);
+  
   return (
     <div className="space-y-2">
-      <h3 className="font-medium text-sm text-muted-foreground">{title} ({questions.length})</h3>
+      <h3 className="font-medium text-sm text-muted-foreground">
+        {title} ({questions.length})
+      </h3>
       <div className="space-y-1">
-        {questions.map((question) => (
-          <Button
-            key={question.id}
-            variant="ghost"
-            className={cn(
-              "w-full justify-start text-left font-normal h-auto py-2 px-3",
-              selectedQuestion?.id === question.id && "bg-accent"
-            )}
-            onClick={() => handleSelectQuestion(question)}
-          >
-            <div className="flex items-center justify-between w-full">
-              <span className="text-sm">{question.title}</span>
-              {solvedQuestions.includes(question.id) && (
-                <CheckIcon className="h-4 w-4 text-green-500" />
+        {sortedQuestions.map((question) => {
+          const locked = isQuestionLocked(question.id);
+          const solved = solvedQuestions.includes(question.id);
+          
+          return (
+            <Button
+              key={question.id}
+              variant="ghost"
+              className={cn(
+                "w-full justify-start text-left font-normal h-auto py-2 px-3",
+                selectedQuestion?.id === question.id && "bg-accent",
+                locked && "opacity-50 cursor-not-allowed"
               )}
-            </div>
-          </Button>
-        ))}
+              onClick={() => handleSelectQuestion(question)}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  {locked && <LockIcon className="h-3 w-3 text-muted-foreground" />}
+                  <span className="text-sm">{question.title}</span>
+                </div>
+                {solved && (
+                  <CheckIcon className="h-4 w-4 text-green-500" />
+                )}
+              </div>
+            </Button>
+          );
+        })}
       </div>
     </div>
   );

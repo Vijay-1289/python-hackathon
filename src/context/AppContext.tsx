@@ -24,6 +24,7 @@ interface AppContextType {
     details?: string;
   } | null;
   solvedQuestions: number[];
+  isQuestionLocked: (questionId: number) => boolean;
 }
 
 const defaultContext: AppContextType = {
@@ -41,6 +42,7 @@ const defaultContext: AppContextType = {
   output: "",
   testResults: null,
   solvedQuestions: [],
+  isQuestionLocked: () => true,
 };
 
 export const AppContext = createContext<AppContextType>(defaultContext);
@@ -76,6 +78,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const filteredQuestions = allQuestions.filter(
     (question) => question.difficulty === selectedDifficulty
   );
+
+  // Check if a question is locked (previous questions must be solved)
+  const isQuestionLocked = (questionId: number): boolean => {
+    // First question in each difficulty is always unlocked
+    const firstQuestionInCategory = filteredQuestions.length > 0 ? filteredQuestions[0].id : -1;
+    if (questionId === firstQuestionInCategory) return false;
+    
+    // Find the previous question in the same difficulty/category
+    const questionIndex = filteredQuestions.findIndex(q => q.id === questionId);
+    
+    // If question not found or it's the first question, it's not locked
+    if (questionIndex <= 0) return false;
+    
+    // Get the previous question's ID
+    const previousQuestionId = filteredQuestions[questionIndex - 1].id;
+    
+    // Question is locked if the previous question hasn't been solved
+    return !solvedQuestions.includes(previousQuestionId);
+  };
 
   // Effects for persistence
   useEffect(() => {
@@ -169,7 +190,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         if (failedHiddenTestCase !== -1) {
           mockOutput += `Hidden test ${failedHiddenTestCase + 1}: ✗ Failed\n`;
-          failedPublicTestCase = 0; // This is fine now as we changed it to 'let'
+          failedPublicTestCase = 0; // Ensure test is marked as failed if hidden test fails
         } else {
           mockOutput += `All hidden tests passed!\n`;
         }
@@ -190,7 +211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSolvedQuestions(prev => [...prev, selectedQuestion.id]);
         toast({
           title: "Question Solved!",
-          description: "You've successfully solved this problem.",
+          description: "You've successfully solved this problem. You can now move to the next question.",
           variant: "default",
         });
       }
@@ -224,6 +245,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         output,
         testResults,
         solvedQuestions,
+        isQuestionLocked,
       }}
     >
       {children}

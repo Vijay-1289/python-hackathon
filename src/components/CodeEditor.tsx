@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { PlayIcon, LightbulbIcon } from "lucide-react";
@@ -69,7 +68,12 @@ const CodeEditor = () => {
     }
   }, [userCode]);
   
-  // Allow copy-paste in the editor (removed prevention)
+  // Prevent paste in the editor to avoid copy-paste solutions
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    // Optionally show a toast notification
+    console.log("Paste is disabled to encourage typing your own solution");
+  };
   
   // Handle keyboard input in the editor
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -168,31 +172,35 @@ const CodeEditor = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <LightbulbIcon className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Hints</h3>
-                      <ul className="list-disc pl-5 space-y-1">
-                        {selectedQuestion.hints.map((hint, index) => (
-                          <li key={index} className="text-sm text-muted-foreground">
-                            {hint}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <TooltipContent>
-                  <p>Show hints</p>
-                </TooltipContent>
+                <Button variant="outline" size="icon">
+                  <LightbulbIcon className="h-4 w-4" />
+                </Button>
               </TooltipTrigger>
+              <TooltipContent>
+                <p>Show hints</p>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon">
+                <LightbulbIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-2">
+                <h3 className="font-medium">Hints</h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  {selectedQuestion.hints.map((hint, index) => (
+                    <li key={index} className="text-sm text-muted-foreground">
+                      {hint}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </PopoverContent>
+          </Popover>
           
           <Button 
             onClick={runUserCode}
@@ -234,6 +242,7 @@ const CodeEditor = () => {
             contentEditable
             onInput={handleEditorInput}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             onFocus={() => setIsEditorFocused(true)}
             onBlur={() => setIsEditorFocused(false)}
             suppressContentEditableWarning
