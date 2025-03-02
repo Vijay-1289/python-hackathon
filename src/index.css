@@ -106,11 +106,7 @@
   }
 
   .editor-wrapper {
-    @apply min-h-[300px] h-full bg-code-background text-code-foreground rounded-md border border-code-border/50 p-4 font-mono text-sm relative overflow-hidden transition-all duration-300;
-    white-space: pre-wrap;
-    word-break: keep-all;
-    line-height: 1.6;
-    tab-size: 4;
+    @apply rounded-md border border-code-border/50 overflow-hidden transition-all duration-300;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 

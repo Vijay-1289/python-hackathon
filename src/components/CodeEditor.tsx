@@ -219,20 +219,15 @@ const CodeEditor = () => {
                 <span className="text-code-string">{testCase.expected}</span>
               </div>
             ))}
-            {selectedQuestion.testCases.length > 2 && (
-              <div className="text-xs text-muted-foreground italic mt-1">
-                + {selectedQuestion.testCases.length - 2} hidden test cases (your solution must work for all inputs)
-              </div>
-            )}
           </div>
         </div>
       </div>
       
       <div className="flex-1 overflow-hidden relative">
-        <ScrollArea className="h-full bg-code-background p-4">
-          <pre className="font-mono text-sm">
-            <code
-              className="editor-wrapper"
+        <ScrollArea className="h-full">
+          <div className="editor-wrapper">
+            <div
+              className="min-h-[300px] h-full bg-code-background text-code-foreground p-4 font-mono text-sm relative"
               ref={editorRef}
               contentEditable
               onInput={handleEditorInput}
@@ -244,13 +239,14 @@ const CodeEditor = () => {
               spellCheck="false"
               style={{ 
                 outline: "none",
-                padding: "1rem",
-                boxShadow: isEditorFocused ? "0 0 0 2px rgba(147, 112, 219, 0.1)" : "none",
                 transition: "all 0.2s ease",
-                borderRadius: "0.5rem"
+                lineHeight: "1.6",
+                tabSize: "4",
+                whiteSpace: "pre-wrap",
+                wordBreak: "keep-all",
               }}
-            ></code>
-          </pre>
+            ></div>
+          </div>
         </ScrollArea>
       </div>
     </div>
