@@ -169,6 +169,19 @@ const CodeEditor = () => {
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="font-medium">{selectedQuestion.title}</h2>
         <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <LightbulbIcon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Show hints</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -203,7 +216,7 @@ const CodeEditor = () => {
       <div className="p-4 border-b bg-secondary/50">
         <p className="text-sm">{selectedQuestion.description}</p>
         <div className="mt-2">
-          <h3 className="text-xs font-medium mb-1">Public Test Cases:</h3>
+          <h3 className="text-xs font-medium mb-1">Test Cases:</h3>
           <div className="space-y-1">
             {selectedQuestion.testCases.slice(0, 2).map((testCase, index) => (
               <div key={index} className="text-xs bg-secondary p-2 rounded">
@@ -214,7 +227,7 @@ const CodeEditor = () => {
             ))}
             {selectedQuestion.testCases.length > 2 && (
               <div className="text-xs text-muted-foreground">
-                + {selectedQuestion.testCases.length - 2} hidden test cases (your solution must work for all inputs)
+                + {selectedQuestion.testCases.length - 2} more hidden test cases
               </div>
             )}
           </div>
@@ -222,22 +235,18 @@ const CodeEditor = () => {
       </div>
       
       <div className="flex-1 overflow-hidden relative">
-        <ScrollArea className="h-full bg-card/50 p-4">
-          <pre className="font-mono text-sm">
-            <code
-              className="editor-wrapper"
-              ref={editorRef}
-              contentEditable
-              onInput={handleEditorInput}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              onFocus={() => setIsEditorFocused(true)}
-              onBlur={() => setIsEditorFocused(false)}
-              suppressContentEditableWarning
-              spellCheck="false"
-              style={{ outline: "none" }}
-            ></code>
-          </pre>
+        <ScrollArea className="h-full">
+          <div 
+            className="editor-wrapper" 
+            ref={editorRef}
+            contentEditable
+            onInput={handleEditorInput}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            onFocus={() => setIsEditorFocused(true)}
+            onBlur={() => setIsEditorFocused(false)}
+            suppressContentEditableWarning
+          ></div>
         </ScrollArea>
       </div>
     </div>
