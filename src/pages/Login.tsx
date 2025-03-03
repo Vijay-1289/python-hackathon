@@ -18,11 +18,16 @@ const Login = () => {
     if (!isSignInLoaded || !isSignUpLoaded) return;
     try {
       setIsLoading(true);
-      // Updated method: Using the correct OAuth method from Clerk
+      // Using the correct OAuth method and properties from Clerk
       await clerk.openSignIn({
-        strategy: "oauth_google",
+        appearance: {
+          elements: {
+            rootBox: "mx-auto",
+          },
+        },
+        signInUrl: "/login",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/"
+        afterSignInUrl: "/",
       });
     } catch (error) {
       console.error("Google auth error:", error);
