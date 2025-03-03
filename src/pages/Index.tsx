@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import QuestionPanel from "@/components/QuestionPanel";
 import CodeEditor from "@/components/CodeEditor";
 import TestResults from "@/components/TestResults";
+import AnimationEffects from "@/components/AnimationEffects";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-mobile";
 import GradientBackground from "@/components/GradientBackground";
@@ -36,6 +37,7 @@ const Index = () => {
               Python Challenge - Practice your Python skills
             </div>
           </footer>
+          <AnimationEffects />
         </div>
       </GradientBackground>
     </AppProvider>

@@ -24,17 +24,17 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ children }) => 
     setCanvasSize();
     window.addEventListener('resize', setCanvasSize);
     
-    // Colors to transition between
+    // Softer colors for a more subtle gradient
     const colors = [
-      [147, 39, 143],   // Purple
-      [234, 172, 232],  // Pink
-      [67, 124, 205],   // Blue
-      [89, 193, 189],   // Teal
-      [147, 39, 143]    // Back to Purple to complete cycle
+      [220, 230, 255],  // Light blue
+      [230, 240, 255],  // Lighter blue
+      [245, 245, 255],  // Almost white
+      [235, 235, 250],  // Very light lavender
+      [220, 230, 255]   // Back to light blue to complete cycle
     ];
     
     let step = 0;
-    const speed = 0.002;
+    const speed = 0.001; // Slower transition
     
     const drawGradient = () => {
       // Create gradient
@@ -50,7 +50,7 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ children }) => 
       const g = Math.floor(currentColor[1] + (nextColor[1] - currentColor[1]) * transition);
       const b = Math.floor(currentColor[2] + (nextColor[2] - currentColor[2]) * transition);
       
-      // Create a radial gradient effect for 3D illusion
+      // Create a subtle radial gradient
       const gradient = ctx.createRadialGradient(
         canvas.width / 2,
         canvas.height / 2,
@@ -61,8 +61,8 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ children }) => 
       );
       
       gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`);
-      gradient.addColorStop(0.7, `rgba(${r * 0.8}, ${g * 0.8}, ${b * 0.8}, 0.8)`);
-      gradient.addColorStop(1, `rgba(${r * 0.6}, ${g * 0.6}, ${b * 0.6}, 0.6)`);
+      gradient.addColorStop(0.7, `rgba(${r * 0.98}, ${g * 0.98}, ${b * 0.98}, 0.9)`);
+      gradient.addColorStop(1, `rgba(${r * 0.95}, ${g * 0.95}, ${b * 0.95}, 0.8)`);
       
       // Fill canvas with gradient
       ctx.fillStyle = gradient;

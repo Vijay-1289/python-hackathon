@@ -1,9 +1,10 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { CheckCircleIcon, XCircleIcon, TerminalIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TestResults = () => {
   const { testResults, output } = useAppContext();
@@ -20,40 +21,46 @@ const TestResults = () => {
           <div>
             <pre className="font-mono text-sm whitespace-pre-wrap bg-zinc-50 p-4 rounded-xl dark:bg-zinc-800/50">{output}</pre>
             
-            {testResults && (
-              <div 
-                className={cn(
-                  "mt-4 p-4 rounded-xl border",
-                  testResults.passed 
-                    ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300" 
-                    : "border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  {testResults.passed ? (
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
-                  ) : (
-                    <XCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
+            <AnimatePresence>
+              {testResults && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className={cn(
+                    "mt-4 p-4 rounded-xl border",
+                    testResults.passed 
+                      ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300" 
+                      : "border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
                   )}
-                  <span className="font-medium">{testResults.message}</span>
-                </div>
-                {testResults.details && (
-                  <p className="mt-2 text-sm">{testResults.details}</p>
-                )}
-                
-                {!testResults.passed && (
-                  <div className="mt-4 text-sm">
-                    <p className="font-medium">Debugging Tips:</p>
-                    <ul className="list-disc ml-5 mt-1 space-y-1">
-                      <li>Double-check your algorithm logic</li>
-                      <li>Test your code with edge cases</li>
-                      <li>Check for off-by-one errors</li>
-                      <li>Verify your function returns the correct data type</li>
-                    </ul>
+                >
+                  <div className="flex items-center gap-2">
+                    {testResults.passed ? (
+                      <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
+                    ) : (
+                      <XCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
+                    )}
+                    <span className="font-medium">{testResults.message}</span>
                   </div>
-                )}
-              </div>
-            )}
+                  {testResults.details && (
+                    <p className="mt-2 text-sm">{testResults.details}</p>
+                  )}
+                  
+                  {!testResults.passed && (
+                    <div className="mt-4 text-sm">
+                      <p className="font-medium">Debugging Tips:</p>
+                      <ul className="list-disc ml-5 mt-1 space-y-1">
+                        <li>Double-check your algorithm logic</li>
+                        <li>Test your code with edge cases</li>
+                        <li>Check for off-by-one errors</li>
+                        <li>Verify your function returns the correct data type</li>
+                      </ul>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         ) : (
           <div className="text-zinc-500 text-sm flex flex-col items-center justify-center h-full p-4 dark:text-zinc-400">
