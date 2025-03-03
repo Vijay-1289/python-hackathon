@@ -9,24 +9,24 @@ const TestResults = () => {
   const { testResults, output } = useAppContext();
   
   return (
-    <div className="flex flex-col h-full border rounded-lg bg-card overflow-hidden">
-      <div className="p-4 border-b flex items-center">
-        <TerminalIcon className="h-4 w-4 mr-2" />
-        <h2 className="font-medium">Test Results</h2>
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="p-4 border-b border-zinc-100 flex items-center dark:border-zinc-800">
+        <TerminalIcon className="h-4 w-4 mr-2 text-zinc-700 dark:text-zinc-300" />
+        <h2 className="font-medium text-zinc-900 dark:text-zinc-100">Test Results</h2>
       </div>
       
       <ScrollArea className="flex-1 p-4">
         {output ? (
           <div>
-            <pre className="font-mono text-sm whitespace-pre-wrap bg-secondary/30 p-4 rounded-md">{output}</pre>
+            <pre className="font-mono text-sm whitespace-pre-wrap bg-zinc-50 p-4 rounded-xl dark:bg-zinc-800/50">{output}</pre>
             
             {testResults && (
               <div 
                 className={cn(
-                  "mt-4 p-4 rounded-md border",
+                  "mt-4 p-4 rounded-xl border",
                   testResults.passed 
-                    ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200" 
-                    : "border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+                    ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300" 
+                    : "border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -56,8 +56,8 @@ const TestResults = () => {
             )}
           </div>
         ) : (
-          <div className="text-muted-foreground text-sm flex flex-col items-center justify-center h-full p-4">
-            <TerminalIcon className="h-12 w-12 mb-4 text-muted-foreground/50" />
+          <div className="text-zinc-500 text-sm flex flex-col items-center justify-center h-full p-4 dark:text-zinc-400">
+            <TerminalIcon className="h-12 w-12 mb-4 text-zinc-300 dark:text-zinc-700" />
             <p className="text-center">Run your code to see the test results here</p>
             <p className="text-center text-xs mt-2">Some test cases will be hidden like in real coding challenges</p>
           </div>
