@@ -6,7 +6,11 @@ const SSOCallback = () => {
   const { handleRedirectCallback } = useClerk();
 
   useEffect(() => {
-    handleRedirectCallback();
+    // Call handleRedirectCallback with the current URL
+    handleRedirectCallback({
+      // Pass the redirect URL to be handled
+      redirectUrl: window.location.href
+    });
   }, [handleRedirectCallback]);
 
   return (

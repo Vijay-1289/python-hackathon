@@ -18,7 +18,8 @@ const Login = () => {
     if (!isSignInLoaded || !isSignUpLoaded) return;
     try {
       setIsLoading(true);
-      await clerk.authenticateWithRedirect({
+      // Updated method: Using the correct OAuth method from Clerk
+      await clerk.openSignIn({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/"
