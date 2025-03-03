@@ -162,9 +162,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const publicTestCases = selectedQuestion.testCases.slice(0, Math.min(2, selectedQuestion.testCases.length));
       const hiddenTestCases = selectedQuestion.testCases.slice(Math.min(2, selectedQuestion.testCases.length));
       
-      // For demo purposes, we'll randomly pass or fail test cases
-      // In a real app, this would execute the code against the test cases
-      let failedPublicTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * publicTestCases.length) : -1;
+      // Check if the user code is essentially empty or just the starter code
+      const codeWithoutComments = userCode.replace(/\/\/.*$/gm, '').trim();
+      const starterCodeWithoutComments = selectedQuestion.starterCode.replace(/\/\/.*$/gm, '').trim();
+      const isEmptyCode = codeWithoutComments === starterCodeWithoutComments || 
+                          codeWithoutComments.includes('pass') ||
+                          codeWithoutComments.length < starterCodeWithoutComments.length;
+      
+      // If code is empty or just starter code, automatically fail tests
+      let failedPublicTestCase = -1;
+      if (isEmptyCode) {
+        failedPublicTestCase = 0; // Force test failure for empty code
+        mockOutput += "Code appears to be incomplete or unmodified.\n\n";
+      } else {
+        // For actual code, we'll do a simple check to see if key function components are present
+        // This is still a simulation, but more realistic than random passing/failing
+        const functionName = selectedQuestion.title.toLowerCase().replace(/\s+/g, '_');
+        const hasImplementation = !userCode.includes('pass') && userCode.includes('return');
+        
+        if (!hasImplementation) {
+          failedPublicTestCase = 0;
+          mockOutput += "Your code doesn't appear to return any values.\n\n";
+        }
+      }
       
       // Show results for public test cases
       publicTestCases.forEach((testCase, index) => {
@@ -174,7 +194,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!passed) {
           mockOutput += `  Input: ${testCase.input}\n`;
           mockOutput += `  Expected: ${testCase.expected}\n`;
-          mockOutput += `  Got: Something different\n`;
+          mockOutput += `  Got: ${isEmptyCode ? "No implementation" : "Something different"}\n`;
         } else {
           mockOutput += `  Input: ${testCase.input}\n`;
           mockOutput += `  Output: ${testCase.expected}\n`;
@@ -185,8 +205,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (hiddenTestCases.length > 0) {
         mockOutput += `\nRunning ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
         
-        // For demo, randomly fail a hidden test case
-        const failedHiddenTestCase = Math.random() > 0.7 ? Math.floor(Math.random() * hiddenTestCases.length) : -1;
+        // If the user code is incomplete, fail hidden tests too
+        const failedHiddenTestCase = isEmptyCode ? 0 : -1;
         
         if (failedHiddenTestCase !== -1) {
           mockOutput += `Hidden test ${failedHiddenTestCase + 1}: ✗ Failed\n`;

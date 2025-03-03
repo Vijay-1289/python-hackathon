@@ -5,9 +5,62 @@ import { CheckCircleIcon, XCircleIcon, TerminalIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 
 const TestResults = () => {
   const { testResults, output } = useAppContext();
+  
+  // Effect to trigger animations based on test results
+  useEffect(() => {
+    if (!testResults) return;
+    
+    if (testResults.passed) {
+      // Success animation - trigger confetti
+      const count = 200;
+      const defaults = {
+        origin: { y: 0.7 },
+        zIndex: 5000
+      };
+      
+      function fire(particleRatio: number, opts: any) {
+        confetti({
+          ...defaults,
+          ...opts,
+          particleCount: Math.floor(count * particleRatio)
+        });
+      }
+      
+      fire(0.25, {
+        spread: 26,
+        startVelocity: 55,
+      });
+      
+      fire(0.2, {
+        spread: 60,
+      });
+      
+      fire(0.35, {
+        spread: 100,
+        decay: 0.91,
+        scalar: 0.8
+      });
+      
+      fire(0.1, {
+        spread: 120,
+        startVelocity: 25,
+        decay: 0.92,
+        scalar: 1.2
+      });
+      
+      fire(0.1, {
+        spread: 120,
+        startVelocity: 45,
+      });
+    } else {
+      // Failure animation is handled by the motion components in the UI
+      // The screen shake effect is applied directly to the result component
+    }
+  }, [testResults]);
   
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -25,7 +78,16 @@ const TestResults = () => {
               {testResults && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    ...(testResults.passed ? {} : {
+                      x: [0, -10, 10, -10, 10, 0],
+                      transition: { 
+                        x: { duration: 0.5, ease: "easeInOut" }
+                      }
+                    })
+                  }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
                   className={cn(
@@ -48,7 +110,12 @@ const TestResults = () => {
                   )}
                   
                   {!testResults.passed && (
-                    <div className="mt-4 text-sm">
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="mt-4 text-sm"
+                    >
                       <p className="font-medium">Debugging Tips:</p>
                       <ul className="list-disc ml-5 mt-1 space-y-1">
                         <li>Double-check your algorithm logic</li>
@@ -56,7 +123,7 @@ const TestResults = () => {
                         <li>Check for off-by-one errors</li>
                         <li>Verify your function returns the correct data type</li>
                       </ul>
-                    </div>
+                    </motion.div>
                   )}
                 </motion.div>
               )}
