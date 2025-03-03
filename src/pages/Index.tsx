@@ -7,6 +7,7 @@ import CodeEditor from "@/components/CodeEditor";
 import TestResults from "@/components/TestResults";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-mobile";
+import GradientBackground from "@/components/GradientBackground";
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -18,23 +19,25 @@ const Index = () => {
   
   return (
     <AppProvider>
-      <div className="flex flex-col min-h-screen bg-zinc-50 antialiased dark:bg-zinc-900">
-        <Navbar />
-        
-        <main className="flex-1 container py-6 px-4 md:px-6 max-w-full">
-          {isMobile ? (
-            <MobileLayout />
-          ) : (
-            <DesktopLayout />
-          )}
-        </main>
-        
-        <footer className="border-t py-4 text-center text-sm text-zinc-500 dark:border-zinc-800">
-          <div className="container">
-            Python Challenge - Practice your Python skills
-          </div>
-        </footer>
-      </div>
+      <GradientBackground>
+        <div className="flex flex-col min-h-screen antialiased">
+          <Navbar />
+          
+          <main className="flex-1 container py-6 px-4 md:px-6 max-w-full">
+            {isMobile ? (
+              <MobileLayout />
+            ) : (
+              <DesktopLayout />
+            )}
+          </main>
+          
+          <footer className="border-t border-white/10 py-4 text-center text-sm text-zinc-500 backdrop-blur-sm">
+            <div className="container">
+              Python Challenge - Practice your Python skills
+            </div>
+          </footer>
+        </div>
+      </GradientBackground>
     </AppProvider>
   );
 };
@@ -46,7 +49,7 @@ const DesktopLayout = () => {
       className="min-h-[calc(100vh-10rem)]"
     >
       <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-        <div className="ios-card h-full overflow-hidden">
+        <div className="ios-card h-full overflow-hidden bg-white/80 backdrop-blur-md">
           <QuestionPanel />
         </div>
       </ResizablePanel>
@@ -56,7 +59,7 @@ const DesktopLayout = () => {
       <ResizablePanel defaultSize={75} minSize={40}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={70} minSize={30}>
-            <div className="ios-card h-full overflow-hidden">
+            <div className="ios-card h-full overflow-hidden bg-white/80 backdrop-blur-md">
               <CodeEditor />
             </div>
           </ResizablePanel>
@@ -64,7 +67,7 @@ const DesktopLayout = () => {
           <ResizableHandle withHandle />
           
           <ResizablePanel defaultSize={30} minSize={15}>
-            <div className="ios-card h-full overflow-hidden">
+            <div className="ios-card h-full overflow-hidden bg-white/80 backdrop-blur-md">
               <TestResults />
             </div>
           </ResizablePanel>
@@ -79,7 +82,7 @@ const MobileLayout = () => {
   
   return (
     <div className="space-y-4">
-      <div className="ios-segmented-control">
+      <div className="ios-segmented-control bg-white/80 backdrop-blur-md">
         <button
           className={`ios-segmented-item flex-1 ${activeTab === "questions" ? "active" : ""}`}
           onClick={() => setActiveTab("questions")}
@@ -100,7 +103,7 @@ const MobileLayout = () => {
         </button>
       </div>
       
-      <div className="h-[calc(100vh-15rem)] ios-card overflow-hidden">
+      <div className="h-[calc(100vh-15rem)] ios-card overflow-hidden bg-white/80 backdrop-blur-md">
         {activeTab === "questions" && <QuestionPanel />}
         {activeTab === "editor" && <CodeEditor />}
         {activeTab === "results" && <TestResults />}
