@@ -2,7 +2,7 @@
 import React from "react";
 import { useSignIn, useSignUp, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRightIcon, LogInIcon } from "lucide-react";
+import { LogInIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,16 +40,16 @@ const Login = () => {
     }
   };
 
-  const handleGuestAccess = () => {
-    navigate("/");
-  };
-
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-primary rounded-xl inline-flex items-center justify-center mb-4">
-            <LogInIcon className="h-8 w-8 text-white" />
+          <div className="w-32 h-32 mx-auto mb-4">
+            <img 
+              src="/lovable-uploads/77a7c0d3-f658-4307-a018-34fa7008f6d4.png" 
+              alt="Python Challenge Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-medium text-zinc-900">Python Challenge</h1>
           <p className="text-zinc-500 text-sm">Sign in to track your progress and save your solutions</p>
@@ -79,19 +79,6 @@ const Login = () => {
                 </svg>
               </div>
             )}
-          </Button>
-          
-          <div className="relative flex items-center justify-center">
-            <div className="absolute border-t border-zinc-200 w-full"></div>
-            <span className="relative bg-white px-2 text-xs text-zinc-500">or</span>
-          </div>
-
-          <Button 
-            className="w-full rounded-xl h-12 bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center gap-2"
-            onClick={handleGuestAccess}
-          >
-            Continue as Guest
-            <ArrowRightIcon className="h-4 w-4" />
           </Button>
         </div>
 
