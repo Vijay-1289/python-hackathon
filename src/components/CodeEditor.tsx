@@ -32,51 +32,53 @@ const CodeEditor = () => {
   const { user } = useUser();
   const userId = user?.id || "anonymous";
   
-  const editorRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
+  const codeRef = useRef<HTMLElement>(null);
 
-  // Apply syntax highlighting when component mounts or userCode changes
+  // Handle code changes
+  const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newCode = e.target.value;
+    setUserCode(newCode);
+  };
+  
+  // Update syntax highlighting when userCode changes
   useEffect(() => {
-    if (preRef.current && userCode !== undefined) {
-      // Update the content and highlight
-      if (editorRef.current) {
-        editorRef.current.textContent = userCode;
-      }
+    if (codeRef.current && preRef.current && userCode !== undefined) {
+      codeRef.current.textContent = userCode;
       Prism.highlightElement(preRef.current);
     }
-  }, [userCode, userId]);
+  }, [userCode]);
   
-  // Handle keyboard input in the editor
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Allow tab key for indentation
-    if (e.key === "Tab") {
-      e.preventDefault();
-      
-      const selection = window.getSelection();
-      const range = selection?.getRangeAt(0);
-      
-      if (range) {
-        const tabNode = document.createTextNode("    ");
-        range.insertNode(tabNode);
-        
-        // Move cursor after the tab
-        range.setStartAfter(tabNode);
-        range.setEndAfter(tabNode);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-        
-        // Update the code in state
-        if (editorRef.current) {
-          setUserCode(editorRef.current.textContent || "");
-        }
-      }
+  // Sync textarea scroll with highlighted code
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (preRef.current && textareaRef.current) {
+      preRef.current.scrollTop = textareaRef.current.scrollTop;
+      preRef.current.scrollLeft = textareaRef.current.scrollLeft;
     }
   };
   
-  // Handle editor input
-  const handleEditorInput = () => {
-    if (editorRef.current) {
-      setUserCode(editorRef.current.textContent || "");
+  // Handle tab key for indentation
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      
+      // Insert 4 spaces
+      const newCode = userCode.substring(0, start) + '    ' + userCode.substring(end);
+      setUserCode(newCode);
+      
+      // Move cursor after the tab
+      setTimeout(() => {
+        if (textarea) {
+          textarea.selectionStart = textarea.selectionEnd = start + 4;
+        }
+      }, 0);
     }
   };
   
@@ -147,21 +149,43 @@ const CodeEditor = () => {
       
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea className="h-full">
-          <div className="p-4">
-            <pre ref={preRef} className="language-python">
-              <code
-                ref={editorRef}
-                className="code-editor"
-                contentEditable
-                onInput={handleEditorInput}
-                onKeyDown={handleKeyDown}
-                spellCheck="false"
-                suppressContentEditableWarning
-              ></code>
+          <div className="p-4 code-editor-container relative">
+            <pre ref={preRef} className="language-python overflow-hidden">
+              <code ref={codeRef} className="code-editor-highlight"></code>
             </pre>
+            <textarea
+              ref={textareaRef}
+              value={userCode}
+              onChange={handleCodeChange}
+              onKeyDown={handleKeyDown}
+              onScroll={handleScroll}
+              className="code-editor-textarea absolute top-0 left-0 w-full h-full p-4 bg-transparent text-transparent caret-white resize-none"
+              spellCheck="false"
+              autoComplete="off"
+              autoCorrect="off"
+            />
           </div>
         </ScrollArea>
       </div>
+      
+      <style jsx>{`
+        .code-editor-container {
+          position: relative;
+          min-height: 100%;
+        }
+        .code-editor-highlight {
+          white-space: pre;
+          font-family: monospace;
+          tab-size: 4;
+        }
+        .code-editor-textarea {
+          white-space: pre;
+          font-family: monospace;
+          tab-size: 4;
+          outline: none;
+          border: none;
+        }
+      `}</style>
     </div>
   );
 };
