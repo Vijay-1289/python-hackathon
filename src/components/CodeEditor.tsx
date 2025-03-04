@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { PlayIcon, LightbulbIcon, BrainIcon } from "lucide-react";
+import { PlayIcon, LightbulbIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -34,34 +34,17 @@ const CodeEditor = () => {
   
   const editorRef = useRef<HTMLDivElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
-  const [isEditorFocused, setIsEditorFocused] = useState(false);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [editorReady, setEditorReady] = useState(false);
 
+  // Apply syntax highlighting when component mounts or userCode changes
   useEffect(() => {
-    // Wait for the editor to be mounted and then set it as ready
-    if (editorRef.current) {
-      setEditorReady(true);
-    }
-  }, []);
-
-  // Apply syntax highlighting whenever userCode changes
-  useEffect(() => {
-    if (editorRef.current && userCode !== undefined && editorReady) {
-      editorRef.current.textContent = userCode;
-      
-      // Apply syntax highlighting with Prism
-      if (preRef.current) {
-        Prism.highlightElement(preRef.current);
+    if (preRef.current && userCode !== undefined) {
+      // Update the content and highlight
+      if (editorRef.current) {
+        editorRef.current.textContent = userCode;
       }
+      Prism.highlightElement(preRef.current);
     }
-  }, [userCode, editorReady, userId]);
-  
-  // Prevent paste in the editor to avoid copy-paste solutions
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    console.log("Paste is disabled to encourage typing your own solution");
-  };
+  }, [userCode, userId]);
   
   // Handle keyboard input in the editor
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -97,10 +80,6 @@ const CodeEditor = () => {
     }
   };
   
-  const toggleAIAssistant = () => {
-    setShowAIAssistant(!showAIAssistant);
-  };
-  
   if (!selectedQuestion) {
     return (
       <div className="flex items-center justify-center h-full border rounded-lg bg-card text-muted-foreground">
@@ -114,24 +93,6 @@ const CodeEditor = () => {
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="font-medium">{selectedQuestion.title}</h2>
         <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  data-ai-assistant
-                  onClick={toggleAIAssistant}
-                >
-                  <BrainIcon className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>AI Assistant</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -194,9 +155,6 @@ const CodeEditor = () => {
                 contentEditable
                 onInput={handleEditorInput}
                 onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                onFocus={() => setIsEditorFocused(true)}
-                onBlur={() => setIsEditorFocused(false)}
                 spellCheck="false"
                 suppressContentEditableWarning
               ></code>

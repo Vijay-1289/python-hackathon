@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
 import { toast } from "@/hooks/use-toast";
@@ -60,16 +59,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { user, isSignedIn } = useUser();
   const userId = user?.id || "anonymous";
   
-  // User preferences
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem(`darkMode_${userId}`);
     return saved ? JSON.parse(saved) : window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
-  // User info
   const [userName, setUserName] = useState(() => {
     if (isSignedIn && user?.fullName) {
-      // Use Clerk user's name if available
       const savedName = localStorage.getItem(`userName_${userId}`);
       if (!savedName) {
         localStorage.setItem(`userName_${userId}`, user.fullName);
@@ -79,7 +75,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return localStorage.getItem(`userName_${userId}`) || "";
   });
 
-  // Question & progress tracking
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("beginner");
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [userCode, setUserCode] = useState("");
@@ -89,7 +84,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [allQuestionsCompleted, setAllQuestionsCompleted] = useState(false);
 
-  // Running code & results
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState("");
   const [testResults, setTestResults] = useState<{
@@ -98,16 +92,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     details?: string;
   } | null>(null);
 
-  // Filtered questions based on selected difficulty
   const filteredQuestions = allQuestions.filter(
     (question) => question.difficulty === selectedDifficulty
   );
 
-  // When user changes, load their solved questions and user preferences
   useEffect(() => {
     console.log("User changed or signed in:", userId);
     
-    // Load user-specific preferences
     const savedDarkMode = localStorage.getItem(`darkMode_${userId}`);
     if (savedDarkMode) {
       setDarkMode(JSON.parse(savedDarkMode));
@@ -121,22 +112,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(`userName_${userId}`, user.fullName);
     }
     
-    // Load user progress
     const savedSolvedQuestions = localStorage.getItem(`solvedQuestions_${userId}`);
     setSolvedQuestions(savedSolvedQuestions ? JSON.parse(savedSolvedQuestions) : []);
     
-    // Try to select the first unanswered question or the first question if none have been answered
     if (filteredQuestions.length > 0) {
       const solvedQuestionsArray = savedSolvedQuestions ? JSON.parse(savedSolvedQuestions) : [];
       const firstQuestion = filteredQuestions[0];
       
-      // Find the first unsolved question
       let nextQuestion = filteredQuestions.find(q => !solvedQuestionsArray.includes(q.id)) || firstQuestion;
       setSelectedQuestion(nextQuestion);
     }
   }, [userId, isSignedIn, user]);
 
-  // Check if all questions are completed
   useEffect(() => {
     const questionsInCurrentDifficulty = allQuestions.filter(
       q => q.difficulty === selectedDifficulty
@@ -153,26 +140,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [solvedQuestions, selectedDifficulty]);
 
-  // Check if a question is locked (previous questions must be solved)
   const isQuestionLocked = (questionId: number): boolean => {
-    // First question in each difficulty is always unlocked
     const firstQuestionInCategory = filteredQuestions.length > 0 ? filteredQuestions[0].id : -1;
     if (questionId === firstQuestionInCategory) return false;
     
-    // Find the previous question in the same difficulty/category
     const questionIndex = filteredQuestions.findIndex(q => q.id === questionId);
     
-    // If question not found or it's the first question, it's not locked
     if (questionIndex <= 0) return false;
     
-    // Get the previous question's ID
     const previousQuestionId = filteredQuestions[questionIndex - 1].id;
     
-    // Question is locked if the previous question hasn't been solved
     return !solvedQuestions.includes(previousQuestionId);
   };
 
-  // Effects for persistence
   useEffect(() => {
     localStorage.setItem(`darkMode_${userId}`, JSON.stringify(darkMode));
     if (darkMode) {
@@ -190,7 +170,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(`userName_${userId}`, userName);
   }, [userName, userId]);
 
-  // Set initial user code when selecting a question
   useEffect(() => {
     if (selectedQuestion) {
       console.log("Selected question:", selectedQuestion.id, selectedQuestion.title);
@@ -207,42 +186,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [selectedQuestion, userId]);
 
-  // Save user code for the selected question
   useEffect(() => {
     if (selectedQuestion && userCode) {
       localStorage.setItem(`userCode_${userId}_${selectedQuestion.id}`, userCode);
     }
   }, [userCode, selectedQuestion, userId]);
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     setDarkMode((prev) => !prev);
   };
 
-  // More advanced code analysis function to validate user code
   const analyzeUserCode = (code: string, question: Question): {
     isValid: boolean;
     feedback: string;
     details?: string;
   } => {
-    // Remove comments and trim whitespace for analysis
     const cleanCode = code.replace(/\/\/.*$/gm, '').trim();
     const starterCodeWithoutComments = question.starterCode.replace(/\/\/.*$/gm, '').trim();
     
-    // Check if code is essentially empty or just the starter code
-    if (
-      cleanCode === starterCodeWithoutComments || 
-      cleanCode.includes('pass') ||
-      cleanCode.length < starterCodeWithoutComments.length * 0.8
-    ) {
+    if (cleanCode === starterCodeWithoutComments || cleanCode.includes('pass')) {
       return {
         isValid: false,
         feedback: "Incomplete implementation",
-        details: "Your code appears to be incomplete. Please implement the solution based on the requirements."
+        details: "Your code appears to be incomplete. Please implement the solution."
       };
     }
     
-    // Check for function definition
     if (question.title.toLowerCase().includes('function') && !code.includes('def ')) {
       return {
         isValid: false,
@@ -251,7 +220,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
     
-    // Check for return statement in functions
     if (code.includes('def ') && !code.includes('return')) {
       return {
         isValid: false,
@@ -260,43 +228,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
     
-    // For array-related problems, check for iteration
-    if (
-      (question.title.toLowerCase().includes('array') || 
-       question.description.toLowerCase().includes('array')) && 
-      !code.includes('for') && 
-      !code.includes('while') && 
-      !code.includes('map(') && 
-      !code.includes('.map(')
-    ) {
-      return {
-        isValid: false,
-        feedback: "Missing iteration",
-        details: "This problem likely requires iteration through data, but no loops or iteration methods were found."
-      };
-    }
-    
-    // Basic syntactic validation
-    const hasSyntaxErrors = (/[\w\d]+\s+[\w\d]+\s+=/.test(code) && !code.includes('=')) || 
-                           code.includes('if') && !code.includes(':');
-    
-    if (hasSyntaxErrors) {
-      return {
-        isValid: false,
-        feedback: "Potential syntax errors",
-        details: "Your code may contain syntax errors. Check for missing colons, parentheses, or invalid assignments."
-      };
-    }
-    
-    // Advanced pattern recognition would require actual code execution
-    // For now, consider the code valid if it passes basic checks
     return {
       isValid: true,
-      feedback: "Code looks structurally valid"
+      feedback: "Code looks valid"
     };
   };
 
-  // Run the user's code against test cases
   const runUserCode = async () => {
     if (!selectedQuestion) return;
     
@@ -304,15 +241,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTestResults(null);
     setOutput("");
     
-    // Simulate code execution delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     try {
-      // First, analyze the code structure
       const codeAnalysis = analyzeUserCode(userCode, selectedQuestion);
       let mockOutput = "Running test cases...\n";
       
-      // If code is structurally invalid, fail immediately
       if (!codeAnalysis.isValid) {
         mockOutput += `Code analysis: ${codeAnalysis.feedback}\n`;
         if (codeAnalysis.details) {
@@ -331,66 +265,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
       
-      // Show only a subset of test cases (public test cases)
       const publicTestCases = selectedQuestion.testCases.slice(0, Math.min(2, selectedQuestion.testCases.length));
       const hiddenTestCases = selectedQuestion.testCases.slice(Math.min(2, selectedQuestion.testCases.length));
       
-      // More sophisticated code analysis
-      const hasImplementation = userCode.includes('def') && userCode.includes('return');
       const complexity = userCode.split('\n').length;
-      const requiredComplexity = selectedQuestion.difficulty === 'beginner' ? 5 : 
-                                selectedQuestion.difficulty === 'intermediate' ? 8 : 12;
+      const hasImplementation = userCode.includes('def') && userCode.includes('return');
+      const requiredComplexity = selectedQuestion.difficulty === 'beginner' ? 3 : 
+                                selectedQuestion.difficulty === 'intermediate' ? 5 : 8;
       
-      // Determine if code is likely to be valid based on complexity and structure
       const isCodeLikelyValid = complexity >= requiredComplexity && hasImplementation;
       
-      // Simulate actual test execution with intelligent test simulation
-      let failedTestCaseIndex = -1;
+      const failedTestCaseIndex = isCodeLikelyValid ? -1 : 0;
       
-      // Test cases now simulate actual execution by checking code patterns
-      publicTestCases.forEach((testCase, index) => {
-        const input = testCase.input.toLowerCase();
-        const expectedOutput = testCase.expected;
-        
-        // Check if code seems prepared to handle this input type
-        const isPreparedForInput = 
-          (input.includes('[') && userCode.includes('list')) ||
-          (input.includes('"') && userCode.includes('str')) ||
-          (input.includes('true') && userCode.includes('bool')) ||
-          (/\d+/.test(input) && userCode.includes('int'));
-        
-        // Fail test if code isn't structurally prepared for input type
-        if (!isPreparedForInput && failedTestCaseIndex === -1) {
-          failedTestCaseIndex = index;
-        }
-        
-        // For numeric problems, check basic arithmetic operations
-        if (/\d+/.test(input) && /\d+/.test(expectedOutput)) {
-          if (
-            !userCode.includes('+') && 
-            !userCode.includes('-') && 
-            !userCode.includes('*') && 
-            !userCode.includes('/') && 
-            failedTestCaseIndex === -1
-          ) {
-            failedTestCaseIndex = index;
-          }
-        }
-        
-        // If code is very simple but problem isn't, likely fail
-        if (
-          complexity < requiredComplexity && 
-          selectedQuestion.difficulty !== 'beginner' && 
-          failedTestCaseIndex === -1
-        ) {
-          failedTestCaseIndex = index;
-        }
-      });
-      
-      // Generate simulated output
       mockOutput = "Running test cases...\n\n";
       
-      // Show results for public test cases with intelligent simulation
       publicTestCases.forEach((testCase, index) => {
         const passed = failedTestCaseIndex !== index && isCodeLikelyValid;
         mockOutput += `Test ${index + 1}: ${passed ? "✓ Passed" : "✗ Failed"}\n`;
@@ -406,23 +294,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         mockOutput += "\n";
       });
       
-      // For hidden test cases, just show that they exist but not their details
       if (hiddenTestCases.length > 0) {
         mockOutput += `Running ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
         
-        // If the code passed visible tests but is too simple, fail hidden test
-        const failHiddenTest = isCodeLikelyValid ? 
-          (complexity < requiredComplexity + 2 && Math.random() > 0.7) : true;
-        
-        if (failHiddenTest) {
-          mockOutput += `Hidden test case: ✗ Failed\n`;
-          failedTestCaseIndex = 0; // Ensure test is marked as failed
-        } else {
+        if (isCodeLikelyValid) {
           mockOutput += `All hidden tests passed!\n`;
+        } else {
+          mockOutput += `Hidden test case: ✗ Failed\n`;
         }
       }
       
-      const allPassed = failedTestCaseIndex === -1 && isCodeLikelyValid;
+      const allPassed = isCodeLikelyValid;
       
       setOutput(mockOutput);
       
@@ -432,7 +314,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         details: allPassed ? undefined : `Check the output for details on the failed test case.`
       });
       
-      // If all tests passed and this question wasn't already solved, mark it as solved
       if (allPassed && !solvedQuestions.includes(selectedQuestion.id)) {
         setSolvedQuestions(prev => [...prev, selectedQuestion.id]);
         toast({
