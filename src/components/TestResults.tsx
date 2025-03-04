@@ -1,14 +1,15 @@
 
 import React, { useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { CheckCircleIcon, XCircleIcon, TerminalIcon } from "lucide-react";
+import { CheckCircleIcon, XCircleIcon, TerminalIcon, CodeIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import { Button } from "@/components/ui/button";
 
 const TestResults = () => {
-  const { testResults, output } = useAppContext();
+  const { testResults, output, selectedQuestion } = useAppContext();
   
   // Effect to trigger animations based on test results
   useEffect(() => {
@@ -64,9 +65,25 @@ const TestResults = () => {
   
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b border-zinc-100 flex items-center dark:border-zinc-800">
-        <TerminalIcon className="h-4 w-4 mr-2 text-zinc-700 dark:text-zinc-300" />
-        <h2 className="font-medium text-zinc-900 dark:text-zinc-100">Test Results</h2>
+      <div className="p-4 border-b border-zinc-100 flex items-center justify-between dark:border-zinc-800">
+        <div className="flex items-center">
+          <TerminalIcon className="h-4 w-4 mr-2 text-zinc-700 dark:text-zinc-300" />
+          <h2 className="font-medium text-zinc-900 dark:text-zinc-100">Test Results</h2>
+        </div>
+        {testResults && !testResults.passed && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            onClick={() => {
+              const aiAssistantButton = document.querySelector('[data-ai-assistant]') as HTMLButtonElement;
+              if (aiAssistantButton) aiAssistantButton.click();
+            }}
+          >
+            <CodeIcon className="h-3 w-3 mr-1" />
+            Get AI help
+          </Button>
+        )}
       </div>
       
       <ScrollArea className="flex-1 p-4">
@@ -122,6 +139,7 @@ const TestResults = () => {
                         <li>Test your code with edge cases</li>
                         <li>Check for off-by-one errors</li>
                         <li>Verify your function returns the correct data type</li>
+                        <li>Use the AI Assistant for smart hints without full solutions</li>
                       </ul>
                     </motion.div>
                   )}

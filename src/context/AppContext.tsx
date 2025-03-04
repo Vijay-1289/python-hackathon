@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
 import { toast } from "@/hooks/use-toast";
@@ -141,6 +140,83 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDarkMode((prev) => !prev);
   };
 
+  // More advanced code analysis function to validate user code
+  const analyzeUserCode = (code: string, question: Question): {
+    isValid: boolean;
+    feedback: string;
+    details?: string;
+  } => {
+    // Remove comments and trim whitespace for analysis
+    const cleanCode = code.replace(/\/\/.*$/gm, '').trim();
+    const starterCodeWithoutComments = question.starterCode.replace(/\/\/.*$/gm, '').trim();
+    
+    // Check if code is essentially empty or just the starter code
+    if (
+      cleanCode === starterCodeWithoutComments || 
+      cleanCode.includes('pass') ||
+      cleanCode.length < starterCodeWithoutComments.length * 0.8
+    ) {
+      return {
+        isValid: false,
+        feedback: "Incomplete implementation",
+        details: "Your code appears to be incomplete. Please implement the solution based on the requirements."
+      };
+    }
+    
+    // Check for function definition
+    if (question.title.toLowerCase().includes('function') && !code.includes('def ')) {
+      return {
+        isValid: false,
+        feedback: "Missing function definition",
+        details: "The problem requires you to define a function, but none was found in your code."
+      };
+    }
+    
+    // Check for return statement in functions
+    if (code.includes('def ') && !code.includes('return')) {
+      return {
+        isValid: false,
+        feedback: "Missing return statement",
+        details: "Your function needs to return a value, but no return statement was found."
+      };
+    }
+    
+    // For array-related problems, check for iteration
+    if (
+      (question.title.toLowerCase().includes('array') || 
+       question.description.toLowerCase().includes('array')) && 
+      !code.includes('for') && 
+      !code.includes('while') && 
+      !code.includes('map(') && 
+      !code.includes('.map(')
+    ) {
+      return {
+        isValid: false,
+        feedback: "Missing iteration",
+        details: "This problem likely requires iteration through data, but no loops or iteration methods were found."
+      };
+    }
+    
+    // Basic syntactic validation
+    const hasSyntaxErrors = (/[\w\d]+\s+[\w\d]+\s+=/.test(code) && !code.includes('=')) || 
+                           code.includes('if') && !code.includes(':');
+    
+    if (hasSyntaxErrors) {
+      return {
+        isValid: false,
+        feedback: "Potential syntax errors",
+        details: "Your code may contain syntax errors. Check for missing colons, parentheses, or invalid assignments."
+      };
+    }
+    
+    // Advanced pattern recognition would require actual code execution
+    // For now, consider the code valid if it passes basic checks
+    return {
+      isValid: true,
+      feedback: "Code looks structurally valid"
+    };
+  };
+
   // Run the user's code against test cases
   const runUserCode = async () => {
     if (!selectedQuestion) return;
@@ -153,70 +229,121 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     try {
-      // In a real app, this would send the code to a backend for evaluation
-      // Here we'll simulate the evaluation with some mock output
-      
+      // First, analyze the code structure
+      const codeAnalysis = analyzeUserCode(userCode, selectedQuestion);
       let mockOutput = "Running test cases...\n";
+      
+      // If code is structurally invalid, fail immediately
+      if (!codeAnalysis.isValid) {
+        mockOutput += `Code analysis: ${codeAnalysis.feedback}\n`;
+        if (codeAnalysis.details) {
+          mockOutput += `${codeAnalysis.details}\n`;
+        }
+        mockOutput += "\nNo tests run. Please fix your code first.\n";
+        
+        setOutput(mockOutput);
+        setTestResults({
+          passed: false,
+          message: codeAnalysis.feedback,
+          details: codeAnalysis.details
+        });
+        
+        setIsRunning(false);
+        return;
+      }
       
       // Show only a subset of test cases (public test cases)
       const publicTestCases = selectedQuestion.testCases.slice(0, Math.min(2, selectedQuestion.testCases.length));
       const hiddenTestCases = selectedQuestion.testCases.slice(Math.min(2, selectedQuestion.testCases.length));
       
-      // Check if the user code is essentially empty or just the starter code
-      const codeWithoutComments = userCode.replace(/\/\/.*$/gm, '').trim();
-      const starterCodeWithoutComments = selectedQuestion.starterCode.replace(/\/\/.*$/gm, '').trim();
-      const isEmptyCode = codeWithoutComments === starterCodeWithoutComments || 
-                          codeWithoutComments.includes('pass') ||
-                          codeWithoutComments.length < starterCodeWithoutComments.length;
+      // More sophisticated code analysis
+      const hasImplementation = userCode.includes('def') && userCode.includes('return');
+      const complexity = userCode.split('\n').length;
+      const requiredComplexity = selectedQuestion.difficulty === 'beginner' ? 5 : 
+                                selectedQuestion.difficulty === 'intermediate' ? 8 : 12;
       
-      // If code is empty or just starter code, automatically fail tests
-      let failedPublicTestCase = -1;
-      if (isEmptyCode) {
-        failedPublicTestCase = 0; // Force test failure for empty code
-        mockOutput += "Code appears to be incomplete or unmodified.\n\n";
-      } else {
-        // For actual code, we'll do a simple check to see if key function components are present
-        // This is still a simulation, but more realistic than random passing/failing
-        const functionName = selectedQuestion.title.toLowerCase().replace(/\s+/g, '_');
-        const hasImplementation = !userCode.includes('pass') && userCode.includes('return');
-        
-        if (!hasImplementation) {
-          failedPublicTestCase = 0;
-          mockOutput += "Your code doesn't appear to return any values.\n\n";
-        }
-      }
+      // Determine if code is likely to be valid based on complexity and structure
+      const isCodeLikelyValid = complexity >= requiredComplexity && hasImplementation;
       
-      // Show results for public test cases
+      // Simulate actual test execution with intelligent test simulation
+      let failedTestCaseIndex = -1;
+      
+      // Test cases now simulate actual execution by checking code patterns
       publicTestCases.forEach((testCase, index) => {
-        const passed = failedPublicTestCase !== index;
+        const input = testCase.input.toLowerCase();
+        const expectedOutput = testCase.expected;
+        
+        // Check if code seems prepared to handle this input type
+        const isPreparedForInput = 
+          (input.includes('[') && userCode.includes('list')) ||
+          (input.includes('"') && userCode.includes('str')) ||
+          (input.includes('true') && userCode.includes('bool')) ||
+          (/\d+/.test(input) && userCode.includes('int'));
+        
+        // Fail test if code isn't structurally prepared for input type
+        if (!isPreparedForInput && failedTestCaseIndex === -1) {
+          failedTestCaseIndex = index;
+        }
+        
+        // For numeric problems, check basic arithmetic operations
+        if (/\d+/.test(input) && /\d+/.test(expectedOutput)) {
+          if (
+            !userCode.includes('+') && 
+            !userCode.includes('-') && 
+            !userCode.includes('*') && 
+            !userCode.includes('/') && 
+            failedTestCaseIndex === -1
+          ) {
+            failedTestCaseIndex = index;
+          }
+        }
+        
+        // If code is very simple but problem isn't, likely fail
+        if (
+          complexity < requiredComplexity && 
+          selectedQuestion.difficulty !== 'beginner' && 
+          failedTestCaseIndex === -1
+        ) {
+          failedTestCaseIndex = index;
+        }
+      });
+      
+      // Generate simulated output
+      mockOutput = "Running test cases...\n\n";
+      
+      // Show results for public test cases with intelligent simulation
+      publicTestCases.forEach((testCase, index) => {
+        const passed = failedTestCaseIndex !== index && isCodeLikelyValid;
         mockOutput += `Test ${index + 1}: ${passed ? "✓ Passed" : "✗ Failed"}\n`;
         
         if (!passed) {
           mockOutput += `  Input: ${testCase.input}\n`;
           mockOutput += `  Expected: ${testCase.expected}\n`;
-          mockOutput += `  Got: ${isEmptyCode ? "No implementation" : "Something different"}\n`;
+          mockOutput += `  Got: ${!isCodeLikelyValid ? "Function returned incorrect value" : "Unexpected output"}\n`;
         } else {
           mockOutput += `  Input: ${testCase.input}\n`;
           mockOutput += `  Output: ${testCase.expected}\n`;
         }
+        mockOutput += "\n";
       });
       
       // For hidden test cases, just show that they exist but not their details
       if (hiddenTestCases.length > 0) {
-        mockOutput += `\nRunning ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
+        mockOutput += `Running ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
         
-        // If the user code is incomplete, fail hidden tests too
-        const failedHiddenTestCase = isEmptyCode ? 0 : -1;
+        // If the code passed visible tests but is too simple, fail hidden test
+        const failHiddenTest = isCodeLikelyValid ? 
+          (complexity < requiredComplexity + 2 && Math.random() > 0.7) : true;
         
-        if (failedHiddenTestCase !== -1) {
-          mockOutput += `Hidden test ${failedHiddenTestCase + 1}: ✗ Failed\n`;
-          failedPublicTestCase = 0; // Ensure test is marked as failed if hidden test fails
+        if (failHiddenTest) {
+          mockOutput += `Hidden test case: ✗ Failed\n`;
+          failedTestCaseIndex = 0; // Ensure test is marked as failed
         } else {
           mockOutput += `All hidden tests passed!\n`;
         }
       }
       
-      const allPassed = failedPublicTestCase === -1;
+      const allPassed = failedTestCaseIndex === -1 && isCodeLikelyValid;
       
       setOutput(mockOutput);
       

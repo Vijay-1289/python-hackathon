@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import QuestionPanel from "@/components/QuestionPanel";
 import CodeEditor from "@/components/CodeEditor";
 import TestResults from "@/components/TestResults";
+import AIAssistant from "@/components/AIAssistant";
 import AnimationEffects from "@/components/AnimationEffects";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,6 +39,7 @@ const Index = () => {
             </div>
           </footer>
           <AnimationEffects />
+          <AIAssistant />
         </div>
       </GradientBackground>
     </AppProvider>

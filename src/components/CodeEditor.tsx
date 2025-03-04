@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { PlayIcon, LightbulbIcon } from "lucide-react";
+import { PlayIcon, LightbulbIcon, BrainIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -57,6 +58,7 @@ const CodeEditor = () => {
   
   const editorRef = useRef<HTMLDivElement>(null);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   
   // Set editor content when userCode changes
   useEffect(() => {
@@ -156,6 +158,10 @@ const CodeEditor = () => {
     setUserCode(content);
   };
   
+  const toggleAIAssistant = () => {
+    setShowAIAssistant(!showAIAssistant);
+  };
+  
   if (!selectedQuestion) {
     return (
       <div className="flex items-center justify-center h-full border rounded-lg bg-card text-muted-foreground">
@@ -172,12 +178,17 @@ const CodeEditor = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <LightbulbIcon className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  data-ai-assistant
+                  onClick={toggleAIAssistant}
+                >
+                  <BrainIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Show hints</p>
+                <p>AI Assistant</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -192,7 +203,7 @@ const CodeEditor = () => {
               <div className="space-y-2">
                 <h3 className="font-medium">Hints</h3>
                 <ul className="list-disc pl-5 space-y-1">
-                  {selectedQuestion.hints.map((hint, index) => (
+                  {selectedQuestion.hints.map((hint: string, index: number) => (
                     <li key={index} className="text-sm text-muted-foreground">
                       {hint}
                     </li>
@@ -218,7 +229,7 @@ const CodeEditor = () => {
         <div className="mt-2">
           <h3 className="text-xs font-medium mb-1">Test Cases:</h3>
           <div className="space-y-1">
-            {selectedQuestion.testCases.slice(0, 2).map((testCase, index) => (
+            {selectedQuestion.testCases.slice(0, 2).map((testCase: any, index: number) => (
               <div key={index} className="text-xs bg-secondary p-2 rounded">
                 <span className="text-code-function">{testCase.input}</span>
                 <span className="mx-2">→</span>
