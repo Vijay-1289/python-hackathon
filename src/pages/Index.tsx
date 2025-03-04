@@ -11,14 +11,16 @@ import Certificate from "@/components/Certificate";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-mobile";
 import GradientBackground from "@/components/GradientBackground";
+import { useUser } from "@clerk/clerk-react";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const { user } = useUser();
   
   // Add console logs to help debug
   useEffect(() => {
-    console.log("Index component mounted");
-  }, []);
+    console.log("Index component mounted, user:", user?.id);
+  }, [user]);
   
   return (
     <AppProvider>
@@ -29,6 +31,7 @@ const Index = () => {
 
 const IndexContent = ({ isMobile }: { isMobile: boolean }) => {
   const { allQuestionsCompleted, userName } = useAppContext();
+  const { user } = useUser();
   const [showCertificate, setShowCertificate] = useState(false);
   
   // Show certificate when all questions are completed
@@ -37,6 +40,9 @@ const IndexContent = ({ isMobile }: { isMobile: boolean }) => {
       setShowCertificate(true);
     }
   }, [allQuestionsCompleted]);
+  
+  // Get the display name - prefer the userName from context, fallback to Clerk user name
+  const displayName = userName || user?.fullName || "Coding Champion";
   
   return (
     <GradientBackground>
@@ -61,7 +67,7 @@ const IndexContent = ({ isMobile }: { isMobile: boolean }) => {
         
         {showCertificate && (
           <Certificate 
-            userName={userName || "Coding Champion"} 
+            userName={displayName} 
             onClose={() => setShowCertificate(false)} 
           />
         )}

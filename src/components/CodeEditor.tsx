@@ -18,6 +18,7 @@ import {
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism-okaidia.css';
+import { useUser } from "@clerk/clerk-react";
 
 const CodeEditor = () => {
   const { 
@@ -28,14 +29,25 @@ const CodeEditor = () => {
     isRunning
   } = useAppContext();
   
+  const { user } = useUser();
+  const userId = user?.id || "anonymous";
+  
   const editorRef = useRef<HTMLDivElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [editorReady, setEditorReady] = useState(false);
+
+  useEffect(() => {
+    // Wait for the editor to be mounted and then set it as ready
+    if (editorRef.current) {
+      setEditorReady(true);
+    }
+  }, []);
 
   // Apply syntax highlighting whenever userCode changes
   useEffect(() => {
-    if (editorRef.current && userCode !== undefined) {
+    if (editorRef.current && userCode !== undefined && editorReady) {
       editorRef.current.textContent = userCode;
       
       // Apply syntax highlighting with Prism
@@ -43,7 +55,7 @@ const CodeEditor = () => {
         Prism.highlightElement(preRef.current);
       }
     }
-  }, [userCode]);
+  }, [userCode, editorReady, userId]);
   
   // Prevent paste in the editor to avoid copy-paste solutions
   const handlePaste = (e: React.ClipboardEvent) => {

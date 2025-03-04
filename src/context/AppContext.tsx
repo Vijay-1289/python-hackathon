@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
 import { toast } from "@/hooks/use-toast";
+import { useUser } from "@clerk/clerk-react";
 
 type Difficulty = "beginner" | "intermediate" | "pro";
 
@@ -56,15 +57,26 @@ export const AppContext = createContext<AppContextType>(defaultContext);
 export const useAppContext = () => useContext(AppContext);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isSignedIn } = useUser();
+  const userId = user?.id || "anonymous";
+  
   // User preferences
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
+    const saved = localStorage.getItem(`darkMode_${userId}`);
     return saved ? JSON.parse(saved) : window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   // User info
   const [userName, setUserName] = useState(() => {
-    return localStorage.getItem("userName") || "";
+    if (isSignedIn && user?.fullName) {
+      // Use Clerk user's name if available
+      const savedName = localStorage.getItem(`userName_${userId}`);
+      if (!savedName) {
+        localStorage.setItem(`userName_${userId}`, user.fullName);
+      }
+      return savedName || user.fullName;
+    }
+    return localStorage.getItem(`userName_${userId}`) || "";
   });
 
   // Question & progress tracking
@@ -72,7 +84,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [userCode, setUserCode] = useState("");
   const [solvedQuestions, setSolvedQuestions] = useState<number[]>(() => {
-    const saved = localStorage.getItem("solvedQuestions");
+    const saved = localStorage.getItem(`solvedQuestions_${userId}`);
     return saved ? JSON.parse(saved) : [];
   });
   const [allQuestionsCompleted, setAllQuestionsCompleted] = useState(false);
@@ -90,6 +102,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const filteredQuestions = allQuestions.filter(
     (question) => question.difficulty === selectedDifficulty
   );
+
+  // When user changes, load their solved questions and user preferences
+  useEffect(() => {
+    console.log("User changed or signed in:", userId);
+    
+    // Load user-specific preferences
+    const savedDarkMode = localStorage.getItem(`darkMode_${userId}`);
+    if (savedDarkMode) {
+      setDarkMode(JSON.parse(savedDarkMode));
+    }
+    
+    const savedUserName = localStorage.getItem(`userName_${userId}`);
+    if (savedUserName) {
+      setUserName(savedUserName);
+    } else if (isSignedIn && user?.fullName) {
+      setUserName(user.fullName);
+      localStorage.setItem(`userName_${userId}`, user.fullName);
+    }
+    
+    // Load user progress
+    const savedSolvedQuestions = localStorage.getItem(`solvedQuestions_${userId}`);
+    setSolvedQuestions(savedSolvedQuestions ? JSON.parse(savedSolvedQuestions) : []);
+    
+    // Try to select the first unanswered question or the first question if none have been answered
+    if (filteredQuestions.length > 0) {
+      const solvedQuestionsArray = savedSolvedQuestions ? JSON.parse(savedSolvedQuestions) : [];
+      const firstQuestion = filteredQuestions[0];
+      
+      // Find the first unsolved question
+      let nextQuestion = filteredQuestions.find(q => !solvedQuestionsArray.includes(q.id)) || firstQuestion;
+      setSelectedQuestion(nextQuestion);
+    }
+  }, [userId, isSignedIn, user]);
 
   // Check if all questions are completed
   useEffect(() => {
@@ -129,27 +174,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Effects for persistence
   useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+    localStorage.setItem(`darkMode_${userId}`, JSON.stringify(darkMode));
     if (darkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, [darkMode]);
+  }, [darkMode, userId]);
 
   useEffect(() => {
-    localStorage.setItem("solvedQuestions", JSON.stringify(solvedQuestions));
-  }, [solvedQuestions]);
+    localStorage.setItem(`solvedQuestions_${userId}`, JSON.stringify(solvedQuestions));
+  }, [solvedQuestions, userId]);
 
   useEffect(() => {
-    localStorage.setItem("userName", userName);
-  }, [userName]);
+    localStorage.setItem(`userName_${userId}`, userName);
+  }, [userName, userId]);
 
   // Set initial user code when selecting a question
   useEffect(() => {
     if (selectedQuestion) {
       console.log("Selected question:", selectedQuestion.id, selectedQuestion.title);
-      const savedCode = localStorage.getItem(`userCode_${selectedQuestion.id}`);
+      const savedCode = localStorage.getItem(`userCode_${userId}_${selectedQuestion.id}`);
       if (savedCode) {
         setUserCode(savedCode);
       } else {
@@ -160,14 +205,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       setUserCode("");
     }
-  }, [selectedQuestion]);
+  }, [selectedQuestion, userId]);
 
   // Save user code for the selected question
   useEffect(() => {
     if (selectedQuestion && userCode) {
-      localStorage.setItem(`userCode_${selectedQuestion.id}`, userCode);
+      localStorage.setItem(`userCode_${userId}_${selectedQuestion.id}`, userCode);
     }
-  }, [userCode, selectedQuestion]);
+  }, [userCode, selectedQuestion, userId]);
 
   // Toggle dark mode
   const toggleDarkMode = () => {
