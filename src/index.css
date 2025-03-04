@@ -281,6 +281,27 @@
   .ios-segmented-item.active {
     @apply bg-white shadow-sm text-zinc-900;
   }
+
+  /* Code editor custom styles */
+  .code-editor {
+    @apply block w-full outline-none min-h-[300px];
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    caret-color: hsl(var(--primary));
+  }
+
+  /* Certificate animation */
+  @keyframes certificateGlow {
+    0%, 100% {
+      box-shadow: 0 0 15px rgba(129, 140, 248, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(129, 140, 248, 0.8);
+    }
+  }
+
+  .certificate-glow {
+    animation: certificateGlow 3s ease-in-out infinite;
+  }
 }
 
 #root {

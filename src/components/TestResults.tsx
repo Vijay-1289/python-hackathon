@@ -1,15 +1,26 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { CheckCircleIcon, XCircleIcon, TerminalIcon, CodeIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 
 const TestResults = () => {
-  const { testResults, output, selectedQuestion } = useAppContext();
+  const { 
+    testResults, 
+    output, 
+    selectedQuestion, 
+    userName, 
+    setUserName,
+    allQuestionsCompleted
+  } = useAppContext();
+  
+  const [nameInput, setNameInput] = useState("");
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
   
   // Effect to trigger animations based on test results
   useEffect(() => {
@@ -57,11 +68,23 @@ const TestResults = () => {
         spread: 120,
         startVelocity: 45,
       });
+      
+      // If user passed a test and we don't have their name yet, prompt for it
+      if (!userName) {
+        setShowNamePrompt(true);
+      }
     } else {
       // Failure animation is handled by the motion components in the UI
       // The screen shake effect is applied directly to the result component
     }
-  }, [testResults]);
+  }, [testResults, userName]);
+  
+  const handleNameSubmit = () => {
+    if (nameInput.trim()) {
+      setUserName(nameInput.trim());
+      setShowNamePrompt(false);
+    }
+  };
   
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -87,6 +110,28 @@ const TestResults = () => {
       </div>
       
       <ScrollArea className="flex-1 p-4">
+        {showNamePrompt && testResults?.passed && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800"
+          >
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+              Great job! Please enter your name to generate your certificate when you complete all challenges:
+            </p>
+            <div className="flex gap-2">
+              <Input 
+                placeholder="Your name" 
+                value={nameInput} 
+                onChange={(e) => setNameInput(e.target.value)} 
+                className="flex-1"
+              />
+              <Button size="sm" onClick={handleNameSubmit}>Save</Button>
+            </div>
+          </motion.div>
+        )}
+      
         {output ? (
           <div>
             <pre className="font-mono text-sm whitespace-pre-wrap bg-zinc-50 p-4 rounded-xl dark:bg-zinc-800/50">{output}</pre>

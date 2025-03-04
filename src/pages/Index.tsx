@@ -1,12 +1,13 @@
 
-import React, { useEffect } from "react";
-import { AppProvider } from "@/context/AppContext";
+import React, { useEffect, useState } from "react";
+import { AppProvider, useAppContext } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
 import QuestionPanel from "@/components/QuestionPanel";
 import CodeEditor from "@/components/CodeEditor";
 import TestResults from "@/components/TestResults";
 import AIAssistant from "@/components/AIAssistant";
 import AnimationEffects from "@/components/AnimationEffects";
+import Certificate from "@/components/Certificate";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-mobile";
 import GradientBackground from "@/components/GradientBackground";
@@ -21,28 +22,51 @@ const Index = () => {
   
   return (
     <AppProvider>
-      <GradientBackground>
-        <div className="flex flex-col min-h-screen antialiased">
-          <Navbar />
-          
-          <main className="flex-1 container py-6 px-4 md:px-6 max-w-full">
-            {isMobile ? (
-              <MobileLayout />
-            ) : (
-              <DesktopLayout />
-            )}
-          </main>
-          
-          <footer className="border-t border-white/10 py-4 text-center text-sm text-zinc-500 backdrop-blur-sm">
-            <div className="container">
-              Python Challenge - Practice your Python skills
-            </div>
-          </footer>
-          <AnimationEffects />
-          <AIAssistant />
-        </div>
-      </GradientBackground>
+      <IndexContent isMobile={isMobile} />
     </AppProvider>
+  );
+};
+
+const IndexContent = ({ isMobile }: { isMobile: boolean }) => {
+  const { allQuestionsCompleted, userName } = useAppContext();
+  const [showCertificate, setShowCertificate] = useState(false);
+  
+  // Show certificate when all questions are completed
+  useEffect(() => {
+    if (allQuestionsCompleted) {
+      setShowCertificate(true);
+    }
+  }, [allQuestionsCompleted]);
+  
+  return (
+    <GradientBackground>
+      <div className="flex flex-col min-h-screen antialiased">
+        <Navbar />
+        
+        <main className="flex-1 container py-6 px-4 md:px-6 max-w-full">
+          {isMobile ? (
+            <MobileLayout />
+          ) : (
+            <DesktopLayout />
+          )}
+        </main>
+        
+        <footer className="border-t border-white/10 py-4 text-center text-sm text-zinc-500 backdrop-blur-sm">
+          <div className="container">
+            Python Challenge - Practice your Python skills
+          </div>
+        </footer>
+        <AnimationEffects />
+        <AIAssistant />
+        
+        {showCertificate && (
+          <Certificate 
+            userName={userName || "Coding Champion"} 
+            onClose={() => setShowCertificate(false)} 
+          />
+        )}
+      </div>
+    </GradientBackground>
   );
 };
 

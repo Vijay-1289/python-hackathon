@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
 import { toast } from "@/hooks/use-toast";
@@ -24,6 +25,9 @@ interface AppContextType {
   } | null;
   solvedQuestions: number[];
   isQuestionLocked: (questionId: number) => boolean;
+  allQuestionsCompleted: boolean;
+  userName: string;
+  setUserName: (name: string) => void;
 }
 
 const defaultContext: AppContextType = {
@@ -42,6 +46,9 @@ const defaultContext: AppContextType = {
   testResults: null,
   solvedQuestions: [],
   isQuestionLocked: () => true,
+  allQuestionsCompleted: false,
+  userName: "",
+  setUserName: () => {},
 };
 
 export const AppContext = createContext<AppContextType>(defaultContext);
@@ -55,6 +62,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
+  // User info
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem("userName") || "";
+  });
+
   // Question & progress tracking
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("beginner");
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
@@ -63,6 +75,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem("solvedQuestions");
     return saved ? JSON.parse(saved) : [];
   });
+  const [allQuestionsCompleted, setAllQuestionsCompleted] = useState(false);
 
   // Running code & results
   const [isRunning, setIsRunning] = useState(false);
@@ -77,6 +90,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const filteredQuestions = allQuestions.filter(
     (question) => question.difficulty === selectedDifficulty
   );
+
+  // Check if all questions are completed
+  useEffect(() => {
+    const questionsInCurrentDifficulty = allQuestions.filter(
+      q => q.difficulty === selectedDifficulty
+    );
+    
+    const allCompleted = questionsInCurrentDifficulty.every(
+      question => solvedQuestions.includes(question.id)
+    );
+    
+    if (allCompleted && questionsInCurrentDifficulty.length > 0) {
+      setAllQuestionsCompleted(true);
+    } else {
+      setAllQuestionsCompleted(false);
+    }
+  }, [solvedQuestions, selectedDifficulty]);
 
   // Check if a question is locked (previous questions must be solved)
   const isQuestionLocked = (questionId: number): boolean => {
@@ -110,6 +140,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem("solvedQuestions", JSON.stringify(solvedQuestions));
   }, [solvedQuestions]);
+
+  useEffect(() => {
+    localStorage.setItem("userName", userName);
+  }, [userName]);
 
   // Set initial user code when selecting a question
   useEffect(() => {
@@ -393,6 +427,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         testResults,
         solvedQuestions,
         isQuestionLocked,
+        allQuestionsCompleted,
+        userName,
+        setUserName,
       }}
     >
       {children}

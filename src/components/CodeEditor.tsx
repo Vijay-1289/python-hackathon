@@ -15,37 +15,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-// Simple Python syntax highlighting function
-const highlightSyntax = (code: string): JSX.Element[] => {
-  // Split code into lines
-  const lines = code.split("\n");
-  
-  // Define regex patterns for different syntax elements
-  const keywordPattern = /\b(def|if|else|elif|for|while|in|return|True|False|None|import|from|as|class|try|except|finally|with|lambda|pass|break|continue)\b/g;
-  const stringPattern = /(["'])(?:(?=(\\?))\2.)*?\1/g;
-  const commentPattern = /#.*/g;
-  const functionPattern = /\b([a-zA-Z_][a-zA-Z0-9_]*)\(/g;
-  const numberPattern = /\b\d+\.?\d*\b/g;
-  
-  // Return highlighted lines
-  return lines.map((line, lineIndex) => {
-    // Replace keywords with highlighted spans
-    let highlightedLine = line
-      .replace(keywordPattern, '<span class="text-code-keyword">$&</span>')
-      .replace(stringPattern, '<span class="text-code-string">$&</span>')
-      .replace(commentPattern, '<span class="text-code-comment">$&</span>')
-      .replace(functionPattern, '<span class="text-code-function">$1</span>(')
-      .replace(numberPattern, '<span class="text-code-operator">$&</span>');
-    
-    return (
-      <div className="code-line" key={lineIndex}>
-        <span className="code-line-number">{lineIndex + 1}</span>
-        <span dangerouslySetInnerHTML={{ __html: highlightedLine }} />
-      </div>
-    );
-  });
-};
+import Prism from 'prismjs';
+import 'prismjs/components/prism-python';
+import 'prismjs/themes/prism-okaidia.css';
 
 const CodeEditor = () => {
   const { 
@@ -57,15 +29,18 @@ const CodeEditor = () => {
   } = useAppContext();
   
   const editorRef = useRef<HTMLDivElement>(null);
+  const preRef = useRef<HTMLPreElement>(null);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  
-  // Set editor content when userCode changes
+
+  // Apply syntax highlighting whenever userCode changes
   useEffect(() => {
     if (editorRef.current && userCode !== undefined) {
-      // Only update if the content has actually changed
-      if (editorRef.current.innerText !== userCode) {
-        editorRef.current.innerText = userCode;
+      editorRef.current.textContent = userCode;
+      
+      // Apply syntax highlighting with Prism
+      if (preRef.current) {
+        Prism.highlightElement(preRef.current);
       }
     }
   }, [userCode]);
@@ -73,7 +48,6 @@ const CodeEditor = () => {
   // Prevent paste in the editor to avoid copy-paste solutions
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    // Optionally show a toast notification
     console.log("Paste is disabled to encourage typing your own solution");
   };
   
@@ -83,79 +57,32 @@ const CodeEditor = () => {
     if (e.key === "Tab") {
       e.preventDefault();
       
-      const cursorPosition = getSelectionStart();
-      const newCode = 
-        userCode.substring(0, cursorPosition) + 
-        "    " + 
-        userCode.substring(cursorPosition);
+      const selection = window.getSelection();
+      const range = selection?.getRangeAt(0);
       
-      setUserCode(newCode);
-      
-      // Set cursor position after the inserted tab
-      setTimeout(() => {
-        const range = document.createRange();
-        const sel = window.getSelection();
-        if (editorRef.current && sel) {
-          const textNodes = getTextNodes(editorRef.current);
-          let currentPos = 0;
-          let targetNode = null;
-          let targetOffset = 0;
-          
-          for (let i = 0; i < textNodes.length; i++) {
-            const node = textNodes[i];
-            if (currentPos + node.textContent!.length >= cursorPosition + 4) {
-              targetNode = node;
-              targetOffset = cursorPosition + 4 - currentPos;
-              break;
-            }
-            currentPos += node.textContent!.length;
-          }
-          
-          if (targetNode) {
-            range.setStart(targetNode, targetOffset);
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }
+      if (range) {
+        const tabNode = document.createTextNode("    ");
+        range.insertNode(tabNode);
+        
+        // Move cursor after the tab
+        range.setStartAfter(tabNode);
+        range.setEndAfter(tabNode);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        
+        // Update the code in state
+        if (editorRef.current) {
+          setUserCode(editorRef.current.textContent || "");
         }
-      }, 0);
+      }
     }
-  };
-  
-  // Get all text nodes in the editor
-  const getTextNodes = (node: Node): Text[] => {
-    const textNodes: Text[] = [];
-    const walk = document.createTreeWalker(
-      node,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
-    
-    let currentNode: Node | null = walk.nextNode();
-    while (currentNode) {
-      textNodes.push(currentNode as Text);
-      currentNode = walk.nextNode();
-    }
-    
-    return textNodes;
-  };
-  
-  // Get the cursor position in the editor
-  const getSelectionStart = (): number => {
-    const sel = window.getSelection();
-    if (!sel || !editorRef.current) return 0;
-    
-    const range = sel.getRangeAt(0);
-    const preCaretRange = range.cloneRange();
-    preCaretRange.selectNodeContents(editorRef.current);
-    preCaretRange.setEnd(range.startContainer, range.startOffset);
-    return preCaretRange.toString().length;
   };
   
   // Handle editor input
-  const handleEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const content = e.currentTarget.innerText;
-    setUserCode(content);
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setUserCode(editorRef.current.textContent || "");
+    }
   };
   
   const toggleAIAssistant = () => {
@@ -247,17 +174,22 @@ const CodeEditor = () => {
       
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea className="h-full">
-          <div 
-            className="editor-wrapper" 
-            ref={editorRef}
-            contentEditable
-            onInput={handleEditorInput}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            onFocus={() => setIsEditorFocused(true)}
-            onBlur={() => setIsEditorFocused(false)}
-            suppressContentEditableWarning
-          ></div>
+          <div className="p-4">
+            <pre ref={preRef} className="language-python">
+              <code
+                ref={editorRef}
+                className="code-editor"
+                contentEditable
+                onInput={handleEditorInput}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                onFocus={() => setIsEditorFocused(true)}
+                onBlur={() => setIsEditorFocused(false)}
+                spellCheck="false"
+                suppressContentEditableWarning
+              ></code>
+            </pre>
+          </div>
         </ScrollArea>
       </div>
     </div>
