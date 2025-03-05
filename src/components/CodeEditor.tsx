@@ -5,7 +5,6 @@ import { PlayIcon, LightbulbIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
@@ -15,8 +14,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import Prism from 'prismjs';
-import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism-okaidia.css';
 import { useUser } from "@clerk/clerk-react";
 
@@ -32,9 +29,7 @@ const CodeEditor = () => {
   const { user } = useUser();
   const userId = user?.id || "anonymous";
   
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const preRef = useRef<HTMLPreElement>(null);
-  const codeRef = useRef<HTMLElement>(null);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
 
   // Handle code changes
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -42,28 +37,12 @@ const CodeEditor = () => {
     setUserCode(newCode);
   };
   
-  // Update syntax highlighting when userCode changes
-  useEffect(() => {
-    if (codeRef.current && preRef.current && userCode !== undefined) {
-      codeRef.current.textContent = userCode;
-      Prism.highlightElement(codeRef.current);
-    }
-  }, [userCode]);
-  
-  // Sync textarea scroll with highlighted code
-  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
-    if (preRef.current && textareaRef.current) {
-      preRef.current.scrollTop = textareaRef.current.scrollTop;
-      preRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-  };
-  
   // Handle tab key for indentation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
       
-      const textarea = textareaRef.current;
+      const textarea = editorRef.current;
       if (!textarea) return;
       
       const start = textarea.selectionStart;
@@ -150,22 +129,17 @@ const CodeEditor = () => {
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea className="h-full">
           <div className="relative p-4">
-            <pre ref={preRef} className="language-python prism-code absolute top-0 left-0 w-full h-full p-4 m-0 bg-transparent pointer-events-none overflow-hidden">
-              <code ref={codeRef} className="language-python"></code>
-            </pre>
             <textarea
-              ref={textareaRef}
+              ref={editorRef}
               value={userCode}
               onChange={handleCodeChange}
               onKeyDown={handleKeyDown}
-              onScroll={handleScroll}
               spellCheck="false"
-              className="absolute top-0 left-0 w-full h-full p-4 font-mono text-transparent bg-transparent caret-white resize-none outline-none border-none"
+              className="w-full h-full p-4 font-mono bg-zinc-900 text-white resize-none outline-none border-none rounded-md"
               style={{
                 whiteSpace: 'pre',
                 tabSize: 4,
-                caretColor: 'white',
-                minHeight: '100%'
+                minHeight: '300px'
               }}
             />
           </div>

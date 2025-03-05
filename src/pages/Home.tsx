@@ -12,13 +12,15 @@ import {
   BrainIcon,
   SettingsIcon,
   BookIcon,
-  PhoneIcon
+  PhoneIcon,
+  InfoIcon,
+  UserIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import GradientBackground from "@/components/GradientBackground";
 
 const languages = [
-  { id: "python", name: "Python", icon: <TerminalIcon className="h-5 w-5" />, color: "bg-blue-500", route: "/" },
+  { id: "python", name: "Python", icon: <TerminalIcon className="h-5 w-5" />, color: "bg-blue-500", route: "/python" },
   { id: "javascript", name: "JavaScript", icon: <CodeIcon className="h-5 w-5" />, color: "bg-yellow-500", route: "/javascript" },
   { id: "java", name: "Java", icon: <CpuIcon className="h-5 w-5" />, color: "bg-orange-500", route: "/java" },
   { id: "typescript", name: "TypeScript", icon: <CodeIcon className="h-5 w-5" />, color: "bg-blue-600", route: "/typescript" },
@@ -135,9 +137,24 @@ const Home = () => {
               CodeChallenge
             </h1>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" className="text-white">About</Button>
-              <Button variant="ghost" className="text-white">Contact</Button>
-              <Button variant="secondary">Sign In</Button>
+              <Link to="/about">
+                <Button variant="ghost" className="text-white">
+                  <InfoIcon className="mr-2 h-4 w-4" />
+                  About
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button variant="ghost" className="text-white">
+                  <PhoneIcon className="mr-2 h-4 w-4" />
+                  Contact
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button variant="secondary">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </div>
         </header>

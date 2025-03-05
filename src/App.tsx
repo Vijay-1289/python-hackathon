@@ -10,6 +10,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SSOCallback from "./pages/SSOCallback";
 import NotFound from "./pages/NotFound";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -20,12 +22,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/sso-callback" element={<SSOCallback />} />
+          
+          {/* Python route */}
           <Route
-            path="/"
+            path="/python"
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Python" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -33,9 +43,6 @@ const App = () => (
               </>
             }
           />
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/sso-callback" element={<SSOCallback />} />
           
           {/* Language specific routes */}
           <Route
@@ -43,7 +50,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="JavaScript" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -56,7 +63,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Java" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -69,7 +76,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="TypeScript" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -82,7 +89,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Go" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -95,7 +102,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="C#" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -108,7 +115,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Ruby" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -121,7 +128,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Swift" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -134,7 +141,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Kotlin" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -147,7 +154,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="PHP" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -160,7 +167,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Rust" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -173,7 +180,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="SQL" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -186,7 +193,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="R" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />
@@ -199,7 +206,7 @@ const App = () => (
             element={
               <>
                 <SignedIn>
-                  <Index />
+                  <Index language="Dart" />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/login" replace />

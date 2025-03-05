@@ -18,6 +18,9 @@ const LanguageHeader = ({ language }: LanguageHeaderProps) => {
             All Languages
           </Button>
         </Link>
+        <span className="text-white text-sm bg-white/10 px-3 py-1 rounded-md backdrop-blur-md">
+          Current: {language}
+        </span>
       </div>
     </div>
   );

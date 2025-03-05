@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { AppProvider, useAppContext } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
@@ -13,44 +12,24 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { useIsMobile } from "@/hooks/use-mobile";
 import GradientBackground from "@/components/GradientBackground";
 import { useUser } from "@clerk/clerk-react";
-import { useLocation } from "react-router-dom";
 
-const Index = () => {
+interface IndexProps {
+  language?: string;
+}
+
+const Index = ({ language = "Python" }: IndexProps) => {
   const isMobile = useIsMobile();
   const { user } = useUser();
-  const location = useLocation();
-  
-  // Determine language from URL path
-  const getLanguageFromPath = () => {
-    const path = location.pathname.substring(1);
-    if (path === "") return "Python";
-    if (path === "javascript") return "JavaScript";
-    if (path === "java") return "Java";
-    if (path === "typescript") return "TypeScript";
-    if (path === "golang") return "Go";
-    if (path === "csharp") return "C#";
-    if (path === "ruby") return "Ruby";
-    if (path === "swift") return "Swift";
-    if (path === "kotlin") return "Kotlin";
-    if (path === "php") return "PHP";
-    if (path === "rust") return "Rust";
-    if (path === "sql") return "SQL";
-    if (path === "r") return "R";
-    if (path === "dart") return "Dart";
-    return "Python";
-  };
-  
-  const currentLanguage = getLanguageFromPath();
   
   // Add console logs to help debug
   useEffect(() => {
     console.log("Index component mounted, user:", user?.id);
-    console.log("Current language:", currentLanguage);
-  }, [user, currentLanguage]);
+    console.log("Current language:", language);
+  }, [user, language]);
   
   return (
     <AppProvider>
-      <IndexContent isMobile={isMobile} language={currentLanguage} />
+      <IndexContent isMobile={isMobile} language={language} />
     </AppProvider>
   );
 };
