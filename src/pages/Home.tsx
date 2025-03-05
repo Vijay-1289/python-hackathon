@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import GradientBackground from "@/components/GradientBackground";
 
+// Languages with their corresponding routes and properties
 const languages = [
   { id: "python", name: "Python", icon: <TerminalIcon className="h-5 w-5" />, color: "bg-blue-500", route: "/python" },
   { id: "javascript", name: "JavaScript", icon: <CodeIcon className="h-5 w-5" />, color: "bg-yellow-500", route: "/javascript" },

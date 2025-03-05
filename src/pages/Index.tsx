@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { AppProvider, useAppContext } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
@@ -52,7 +53,7 @@ const IndexContent = ({ isMobile, language }: { isMobile: boolean, language: str
   return (
     <GradientBackground>
       <div className="flex flex-col min-h-screen antialiased">
-        <Navbar />
+        <Navbar language={language} />
         <LanguageHeader language={language} />
         
         <main className="flex-1 container py-6 px-4 md:px-6 max-w-full">

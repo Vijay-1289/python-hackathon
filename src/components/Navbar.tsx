@@ -5,7 +5,11 @@ import { MoonIcon, SunIcon, CodeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/clerk-react";
 
-const Navbar = () => {
+interface NavbarProps {
+  language?: string;
+}
+
+const Navbar = ({ language = "Python" }: NavbarProps) => {
   const { darkMode, toggleDarkMode } = useAppContext();
 
   return (
@@ -15,10 +19,10 @@ const Navbar = () => {
           <div className="h-8 w-8 bg-primary rounded-xl flex items-center justify-center">
             <CodeIcon className="h-4 w-4 text-white" />
           </div>
-          <h1 className="text-lg font-medium">Python Challenge</h1>
+          <h1 className="text-lg font-medium">{language} Challenge</h1>
           <div className="hidden md:flex items-center gap-2 ml-2">
             <div className="px-2 py-1 bg-zinc-100 rounded-full text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200">
-              30 Python Questions
+              30 {language} Questions
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
               Beginner • Intermediate • Pro
