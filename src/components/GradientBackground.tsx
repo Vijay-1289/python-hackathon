@@ -24,17 +24,17 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ children }) => 
     setCanvasSize();
     window.addEventListener('resize', setCanvasSize);
     
-    // Softer colors for a more subtle gradient
+    // Pink and blue color palette
     const colors = [
-      [220, 230, 255],  // Light blue
-      [230, 240, 255],  // Lighter blue
-      [245, 245, 255],  // Almost white
-      [235, 235, 250],  // Very light lavender
-      [220, 230, 255]   // Back to light blue to complete cycle
+      [253, 222, 226],  // Light pink
+      [214, 194, 250],  // Light purple/lavender
+      [173, 216, 255],  // Light blue
+      [213, 184, 255],  // Soft purple
+      [253, 222, 226],  // Back to light pink to complete cycle
     ];
     
     let step = 0;
-    const speed = 0.001; // Slower transition
+    const speed = 0.0008; // Slower transition
     
     const drawGradient = () => {
       // Create gradient
@@ -50,23 +50,42 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ children }) => 
       const g = Math.floor(currentColor[1] + (nextColor[1] - currentColor[1]) * transition);
       const b = Math.floor(currentColor[2] + (nextColor[2] - currentColor[2]) * transition);
       
-      // Create a subtle radial gradient
-      const gradient = ctx.createRadialGradient(
-        canvas.width / 2,
-        canvas.height / 2,
-        0,
-        canvas.width / 2,
-        canvas.height / 2,
-        Math.max(canvas.width, canvas.height)
+      // Create a radial gradient from top-left to bottom-right
+      const gradient = ctx.createLinearGradient(
+        0, 
+        0, 
+        canvas.width, 
+        canvas.height
       );
       
-      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`);
-      gradient.addColorStop(0.7, `rgba(${r * 0.98}, ${g * 0.98}, ${b * 0.98}, 0.9)`);
-      gradient.addColorStop(1, `rgba(${r * 0.95}, ${g * 0.95}, ${b * 0.95}, 0.8)`);
+      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+      gradient.addColorStop(0.5, `rgba(${r*0.8}, ${g*0.9}, ${b*1.1}, 0.95)`);
+      gradient.addColorStop(1, `rgba(${r*0.9}, ${g*0.85}, ${b*1.05}, 0.9)`);
       
       // Fill canvas with gradient
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add some subtle circular highlights
+      const highlightCount = 3;
+      for (let i = 0; i < highlightCount; i++) {
+        const x = canvas.width * (0.2 + 0.6 * Math.sin(step * 0.5 + i));
+        const y = canvas.height * (0.2 + 0.6 * Math.cos(step * 0.3 + i));
+        const radius = Math.min(canvas.width, canvas.height) * (0.1 + 0.05 * Math.sin(step + i));
+        
+        const highlight = ctx.createRadialGradient(
+          x, y, 0,
+          x, y, radius
+        );
+        
+        highlight.addColorStop(0, `rgba(255, 255, 255, 0.1)`);
+        highlight.addColorStop(1, `rgba(255, 255, 255, 0)`);
+        
+        ctx.fillStyle = highlight;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
       
       // Move to next step
       step = (step + speed) % colors.length;
@@ -86,7 +105,7 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ children }) => 
       <canvas 
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full -z-10"
-        style={{ opacity: 0.7 }}
+        style={{ opacity: 0.9 }}
       />
       <div className="relative z-10 w-full h-full">
         {children}
