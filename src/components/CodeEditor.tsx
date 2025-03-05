@@ -46,7 +46,7 @@ const CodeEditor = () => {
   useEffect(() => {
     if (codeRef.current && preRef.current && userCode !== undefined) {
       codeRef.current.textContent = userCode;
-      Prism.highlightElement(preRef.current);
+      Prism.highlightElement(codeRef.current);
     }
   }, [userCode]);
   
@@ -149,9 +149,9 @@ const CodeEditor = () => {
       
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea className="h-full">
-          <div className="p-4 code-editor-container relative">
-            <pre ref={preRef} className="language-python overflow-hidden">
-              <code ref={codeRef} className="code-editor-highlight"></code>
+          <div className="relative p-4">
+            <pre ref={preRef} className="language-python prism-code absolute top-0 left-0 w-full h-full p-4 m-0 bg-transparent pointer-events-none overflow-hidden">
+              <code ref={codeRef} className="language-python"></code>
             </pre>
             <textarea
               ref={textareaRef}
@@ -159,35 +159,18 @@ const CodeEditor = () => {
               onChange={handleCodeChange}
               onKeyDown={handleKeyDown}
               onScroll={handleScroll}
-              className="code-editor-textarea absolute top-0 left-0 w-full h-full p-4 bg-transparent text-transparent caret-white resize-none"
               spellCheck="false"
-              autoComplete="off"
-              autoCorrect="off"
+              className="absolute top-0 left-0 w-full h-full p-4 font-mono text-transparent bg-transparent caret-white resize-none outline-none border-none"
+              style={{
+                whiteSpace: 'pre',
+                tabSize: 4,
+                caretColor: 'white',
+                minHeight: '100%'
+              }}
             />
           </div>
         </ScrollArea>
       </div>
-      
-      <style>
-        {`
-          .code-editor-container {
-            position: relative;
-            min-height: 100%;
-          }
-          .code-editor-highlight {
-            white-space: pre;
-            font-family: monospace;
-            tab-size: 4;
-          }
-          .code-editor-textarea {
-            white-space: pre;
-            font-family: monospace;
-            tab-size: 4;
-            outline: none;
-            border: none;
-          }
-        `}
-      </style>
     </div>
   );
 };
