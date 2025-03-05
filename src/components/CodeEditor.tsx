@@ -168,24 +168,26 @@ const CodeEditor = () => {
         </ScrollArea>
       </div>
       
-      <style jsx>{`
-        .code-editor-container {
-          position: relative;
-          min-height: 100%;
-        }
-        .code-editor-highlight {
-          white-space: pre;
-          font-family: monospace;
-          tab-size: 4;
-        }
-        .code-editor-textarea {
-          white-space: pre;
-          font-family: monospace;
-          tab-size: 4;
-          outline: none;
-          border: none;
-        }
-      `}</style>
+      <style>
+        {`
+          .code-editor-container {
+            position: relative;
+            min-height: 100%;
+          }
+          .code-editor-highlight {
+            white-space: pre;
+            font-family: monospace;
+            tab-size: 4;
+          }
+          .code-editor-textarea {
+            white-space: pre;
+            font-family: monospace;
+            tab-size: 4;
+            outline: none;
+            border: none;
+          }
+        `}
+      </style>
     </div>
   );
 };
