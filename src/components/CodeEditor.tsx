@@ -59,6 +59,16 @@ const CodeEditor = () => {
     }
   };
   
+  // Prevent copy and paste events
+  const handleCopyPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    toast({
+      title: "Copy/Paste Disabled",
+      description: "This feature is disabled to encourage typing the code yourself.",
+      variant: "destructive",
+    });
+  };
+  
   // Get the appropriate indentation based on language
   const getLanguageIndentation = () => {
     const indentationMap = {
@@ -185,6 +195,9 @@ const CodeEditor = () => {
               value={userCode}
               onChange={handleCodeChange}
               onKeyDown={handleKeyDown}
+              onCopy={handleCopyPaste}
+              onPaste={handleCopyPaste}
+              onCut={handleCopyPaste}
               spellCheck="false"
               className={`w-full h-full p-4 ${getEditorFontSettings()} text-white resize-none outline-none border-none rounded-xl ${getEditorTheme()}`}
               style={{
