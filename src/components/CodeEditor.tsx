@@ -5,11 +5,6 @@ import { PlayIcon, LightbulbIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { 
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -23,7 +18,8 @@ const CodeEditor = () => {
     userCode, 
     setUserCode, 
     runUserCode,
-    isRunning
+    isRunning,
+    currentLanguage
   } = useAppContext();
   
   const { user } = useUser();
@@ -48,17 +44,40 @@ const CodeEditor = () => {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       
-      // Insert 4 spaces
-      const newCode = userCode.substring(0, start) + '    ' + userCode.substring(end);
+      // Insert 4 spaces or 2 spaces depending on language
+      const indentation = currentLanguage === "Python" ? '    ' : '  ';
+      const newCode = userCode.substring(0, start) + indentation + userCode.substring(end);
       setUserCode(newCode);
       
       // Move cursor after the tab
       setTimeout(() => {
         if (textarea) {
-          textarea.selectionStart = textarea.selectionEnd = start + 4;
+          textarea.selectionStart = textarea.selectionEnd = start + indentation.length;
         }
       }, 0);
     }
+  };
+  
+  // Set the editor theme based on language
+  const getEditorTheme = () => {
+    const themes = {
+      "Python": "bg-blue-950",
+      "JavaScript": "bg-yellow-900",
+      "TypeScript": "bg-blue-900",
+      "Java": "bg-red-900",
+      "Go": "bg-cyan-900",
+      "C#": "bg-purple-900",
+      "Ruby": "bg-red-900",
+      "Swift": "bg-orange-900",
+      "Kotlin": "bg-purple-900",
+      "PHP": "bg-indigo-900",
+      "Rust": "bg-orange-950",
+      "SQL": "bg-gray-900",
+      "R": "bg-blue-900",
+      "Dart": "bg-cyan-900"
+    };
+    
+    return themes[currentLanguage] || "bg-zinc-900";
   };
   
   if (!selectedQuestion) {
@@ -135,7 +154,7 @@ const CodeEditor = () => {
               onChange={handleCodeChange}
               onKeyDown={handleKeyDown}
               spellCheck="false"
-              className="w-full h-full p-4 font-mono bg-zinc-900 text-white resize-none outline-none border-none rounded-md"
+              className={`w-full h-full p-4 font-mono text-white resize-none outline-none border-none rounded-md ${getEditorTheme()}`}
               style={{
                 whiteSpace: 'pre',
                 tabSize: 4,

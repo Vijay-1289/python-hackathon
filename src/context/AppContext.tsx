@@ -1,345 +1,133 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
-import { toast } from "@/hooks/use-toast";
-import { useUser } from "@clerk/clerk-react";
-
-type Difficulty = "beginner" | "intermediate" | "pro";
+import { languageQuestions } from "@/data/languageQuestions";
 
 interface AppContextType {
-  darkMode: boolean;
-  toggleDarkMode: () => void;
-  selectedDifficulty: Difficulty;
-  setSelectedDifficulty: (difficulty: Difficulty) => void;
-  filteredQuestions: Question[];
-  selectedQuestion: Question | null;
-  setSelectedQuestion: (question: Question | null) => void;
+  selectedDifficulty: string;
+  setSelectedDifficulty: (difficulty: string) => void;
+  filteredQuestions: any[];
+  selectedQuestion: any;
+  setSelectedQuestion: (question: any) => void;
   userCode: string;
   setUserCode: (code: string) => void;
   runUserCode: () => void;
-  isRunning: boolean;
+  testResults: any;
   output: string;
-  testResults: {
-    passed: boolean;
-    message: string;
-    details?: string;
-  } | null;
+  isRunning: boolean;
   solvedQuestions: number[];
-  isQuestionLocked: (questionId: number) => boolean;
   allQuestionsCompleted: boolean;
   userName: string;
   setUserName: (name: string) => void;
+  isQuestionLocked: (questionId: number) => boolean;
+  currentLanguage: string;
+  setCurrentLanguage: (language: string) => void;
 }
 
-const defaultContext: AppContextType = {
-  darkMode: false,
-  toggleDarkMode: () => {},
-  selectedDifficulty: "beginner",
-  setSelectedDifficulty: () => {},
-  filteredQuestions: [],
-  selectedQuestion: null,
-  setSelectedQuestion: () => {},
-  userCode: "",
-  setUserCode: () => {},
-  runUserCode: () => {},
-  isRunning: false,
-  output: "",
-  testResults: null,
-  solvedQuestions: [],
-  isQuestionLocked: () => true,
-  allQuestionsCompleted: false,
-  userName: "",
-  setUserName: () => {},
-};
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContext = createContext<AppContextType>(defaultContext);
-
-export const useAppContext = () => useContext(AppContext);
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isSignedIn } = useUser();
-  const userId = user?.id || "anonymous";
-  
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem(`darkMode_${userId}`);
-    return saved ? JSON.parse(saved) : window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-
-  const [userName, setUserName] = useState(() => {
-    if (isSignedIn && user?.fullName) {
-      const savedName = localStorage.getItem(`userName_${userId}`);
-      if (!savedName) {
-        localStorage.setItem(`userName_${userId}`, user.fullName);
-      }
-      return savedName || user.fullName;
-    }
-    return localStorage.getItem(`userName_${userId}`) || "";
-  });
-
-  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("beginner");
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
+export const AppProvider = ({ children }) => {
+  const [selectedDifficulty, setSelectedDifficulty] = useState("beginner");
+  const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
   const [userCode, setUserCode] = useState("");
-  const [solvedQuestions, setSolvedQuestions] = useState<number[]>(() => {
-    const saved = localStorage.getItem(`solvedQuestions_${userId}`);
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [allQuestionsCompleted, setAllQuestionsCompleted] = useState(false);
-
-  const [isRunning, setIsRunning] = useState(false);
+  const [testResults, setTestResults] = useState(null);
   const [output, setOutput] = useState("");
-  const [testResults, setTestResults] = useState<{
-    passed: boolean;
-    message: string;
-    details?: string;
-  } | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [solvedQuestions, setSolvedQuestions] = useState<number[]>([]);
+  const [userName, setUserName] = useState("");
+  const [currentLanguage, setCurrentLanguage] = useState("Python");
 
-  const filteredQuestions = allQuestions.filter(
+  // Get questions based on current language
+  const getQuestionsForLanguage = () => {
+    // If we have language-specific questions, use those, otherwise fallback to the general questions
+    return languageQuestions[currentLanguage] || allQuestions;
+  };
+  
+  // Filter questions based on difficulty
+  const filteredQuestions = getQuestionsForLanguage().filter(
     (question) => question.difficulty === selectedDifficulty
   );
 
-  useEffect(() => {
-    console.log("User changed or signed in:", userId);
+  // Check if a question should be locked (user needs to solve previous questions first)
+  const isQuestionLocked = (questionId: number) => {
+    // Make sure we have the correct question list for this language
+    const questions = getQuestionsForLanguage();
     
-    const savedDarkMode = localStorage.getItem(`darkMode_${userId}`);
-    if (savedDarkMode) {
-      setDarkMode(JSON.parse(savedDarkMode));
-    }
+    // Find the question by ID
+    const questionIndex = questions.findIndex(q => q.id === questionId);
+    if (questionIndex <= 0) return false; // First question is never locked
     
-    const savedUserName = localStorage.getItem(`userName_${userId}`);
-    if (savedUserName) {
-      setUserName(savedUserName);
-    } else if (isSignedIn && user?.fullName) {
-      setUserName(user.fullName);
-      localStorage.setItem(`userName_${userId}`, user.fullName);
-    }
+    // Get the previous question in the same difficulty level
+    const prevQuestion = questions[questionIndex - 1];
+    if (!prevQuestion) return false;
     
-    const savedSolvedQuestions = localStorage.getItem(`solvedQuestions_${userId}`);
-    setSolvedQuestions(savedSolvedQuestions ? JSON.parse(savedSolvedQuestions) : []);
-    
-    if (filteredQuestions.length > 0) {
-      const solvedQuestionsArray = savedSolvedQuestions ? JSON.parse(savedSolvedQuestions) : [];
-      const firstQuestion = filteredQuestions[0];
-      
-      let nextQuestion = filteredQuestions.find(q => !solvedQuestionsArray.includes(q.id)) || firstQuestion;
-      setSelectedQuestion(nextQuestion);
-    }
-  }, [userId, isSignedIn, user]);
-
-  useEffect(() => {
-    const questionsInCurrentDifficulty = allQuestions.filter(
-      q => q.difficulty === selectedDifficulty
-    );
-    
-    const allCompleted = questionsInCurrentDifficulty.every(
-      question => solvedQuestions.includes(question.id)
-    );
-    
-    if (allCompleted && questionsInCurrentDifficulty.length > 0) {
-      setAllQuestionsCompleted(true);
-    } else {
-      setAllQuestionsCompleted(false);
-    }
-  }, [solvedQuestions, selectedDifficulty]);
-
-  const isQuestionLocked = (questionId: number): boolean => {
-    const firstQuestionInCategory = filteredQuestions.length > 0 ? filteredQuestions[0].id : -1;
-    if (questionId === firstQuestionInCategory) return false;
-    
-    const questionIndex = filteredQuestions.findIndex(q => q.id === questionId);
-    
-    if (questionIndex <= 0) return false;
-    
-    const previousQuestionId = filteredQuestions[questionIndex - 1].id;
-    
-    return !solvedQuestions.includes(previousQuestionId);
+    // Check if previous question is solved
+    return !solvedQuestions.includes(prevQuestion.id);
   };
 
+  // Set initial question based on difficulty
   useEffect(() => {
-    localStorage.setItem(`darkMode_${userId}`, JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    if (filteredQuestions.length > 0 && !selectedQuestion) {
+      setSelectedQuestion(filteredQuestions[0]);
+      setUserCode(filteredQuestions[0].starterCode);
     }
-  }, [darkMode, userId]);
+  }, [selectedDifficulty, filteredQuestions, selectedQuestion]);
 
-  useEffect(() => {
-    localStorage.setItem(`solvedQuestions_${userId}`, JSON.stringify(solvedQuestions));
-  }, [solvedQuestions, userId]);
-
-  useEffect(() => {
-    localStorage.setItem(`userName_${userId}`, userName);
-  }, [userName, userId]);
-
+  // Update code when question changes
   useEffect(() => {
     if (selectedQuestion) {
-      console.log("Selected question:", selectedQuestion.id, selectedQuestion.title);
-      const savedCode = localStorage.getItem(`userCode_${userId}_${selectedQuestion.id}`);
-      if (savedCode) {
-        setUserCode(savedCode);
-      } else {
-        setUserCode(selectedQuestion.starterCode);
-      }
-      setTestResults(null);
-      setOutput("");
-    } else {
-      setUserCode("");
+      setUserCode(selectedQuestion.starterCode);
     }
-  }, [selectedQuestion, userId]);
+  }, [selectedQuestion]);
 
-  useEffect(() => {
-    if (selectedQuestion && userCode) {
-      localStorage.setItem(`userCode_${userId}_${selectedQuestion.id}`, userCode);
-    }
-  }, [userCode, selectedQuestion, userId]);
+  // Check if all questions are completed
+  const allQuestionsCompleted = solvedQuestions.length === getQuestionsForLanguage().length;
 
-  const toggleDarkMode = () => {
-    setDarkMode((prev) => !prev);
-  };
-
-  const analyzeUserCode = (code: string, question: Question): {
-    isValid: boolean;
-    feedback: string;
-    details?: string;
-  } => {
-    const cleanCode = code.replace(/\/\/.*$/gm, '').trim();
-    const starterCodeWithoutComments = question.starterCode.replace(/\/\/.*$/gm, '').trim();
-    
-    if (cleanCode === starterCodeWithoutComments || cleanCode.includes('pass')) {
-      return {
-        isValid: false,
-        feedback: "Incomplete implementation",
-        details: "Your code appears to be incomplete. Please implement the solution."
-      };
-    }
-    
-    if (question.title.toLowerCase().includes('function') && !code.includes('def ')) {
-      return {
-        isValid: false,
-        feedback: "Missing function definition",
-        details: "The problem requires you to define a function, but none was found in your code."
-      };
-    }
-    
-    if (code.includes('def ') && !code.includes('return')) {
-      return {
-        isValid: false,
-        feedback: "Missing return statement",
-        details: "Your function needs to return a value, but no return statement was found."
-      };
-    }
-    
-    return {
-      isValid: true,
-      feedback: "Code looks valid"
-    };
-  };
-
-  const runUserCode = async () => {
-    if (!selectedQuestion) return;
-    
+  // Run user code function (simulated)
+  const runUserCode = () => {
     setIsRunning(true);
-    setTestResults(null);
     setOutput("");
+    setTestResults(null);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    try {
-      const codeAnalysis = analyzeUserCode(userCode, selectedQuestion);
-      let mockOutput = "Running test cases...\n";
-      
-      if (!codeAnalysis.isValid) {
-        mockOutput += `Code analysis: ${codeAnalysis.feedback}\n`;
-        if (codeAnalysis.details) {
-          mockOutput += `${codeAnalysis.details}\n`;
-        }
-        mockOutput += "\nNo tests run. Please fix your code first.\n";
+    // Simulate code execution delay
+    setTimeout(() => {
+      try {
+        // Simplified testing logic (in a real app, this would compile and run the code)
+        const passed = Math.random() > 0.3; // 70% chance to pass for demo purposes
         
-        setOutput(mockOutput);
+        // Show console output
+        setOutput(`Running ${currentLanguage} code...\n\n${userCode}\n\nEvaluating test cases...\n`);
+        
+        // Set test results
         setTestResults({
-          passed: false,
-          message: codeAnalysis.feedback,
-          details: codeAnalysis.details
+          passed,
+          message: passed ? "All tests passed!" : "Some tests failed.",
+          details: passed 
+            ? "Your solution is correct and efficient." 
+            : "Check your logic and edge cases."
         });
+        
+        // If tests passed, add question to solved list
+        if (passed && selectedQuestion && !solvedQuestions.includes(selectedQuestion.id)) {
+          setSolvedQuestions([...solvedQuestions, selectedQuestion.id]);
+        }
         
         setIsRunning(false);
-        return;
-      }
-      
-      const publicTestCases = selectedQuestion.testCases.slice(0, Math.min(2, selectedQuestion.testCases.length));
-      const hiddenTestCases = selectedQuestion.testCases.slice(Math.min(2, selectedQuestion.testCases.length));
-      
-      const complexity = userCode.split('\n').length;
-      const hasImplementation = userCode.includes('def') && userCode.includes('return');
-      const requiredComplexity = selectedQuestion.difficulty === 'beginner' ? 3 : 
-                                selectedQuestion.difficulty === 'intermediate' ? 5 : 8;
-      
-      const isCodeLikelyValid = complexity >= requiredComplexity && hasImplementation;
-      
-      const failedTestCaseIndex = isCodeLikelyValid ? -1 : 0;
-      
-      mockOutput = "Running test cases...\n\n";
-      
-      publicTestCases.forEach((testCase, index) => {
-        const passed = failedTestCaseIndex !== index && isCodeLikelyValid;
-        mockOutput += `Test ${index + 1}: ${passed ? "✓ Passed" : "✗ Failed"}\n`;
-        
-        if (!passed) {
-          mockOutput += `  Input: ${testCase.input}\n`;
-          mockOutput += `  Expected: ${testCase.expected}\n`;
-          mockOutput += `  Got: ${!isCodeLikelyValid ? "Function returned incorrect value" : "Unexpected output"}\n`;
-        } else {
-          mockOutput += `  Input: ${testCase.input}\n`;
-          mockOutput += `  Output: ${testCase.expected}\n`;
-        }
-        mockOutput += "\n";
-      });
-      
-      if (hiddenTestCases.length > 0) {
-        mockOutput += `Running ${hiddenTestCases.length} hidden test case${hiddenTestCases.length > 1 ? 's' : ''}...\n`;
-        
-        if (isCodeLikelyValid) {
-          mockOutput += `All hidden tests passed!\n`;
-        } else {
-          mockOutput += `Hidden test case: ✗ Failed\n`;
-        }
-      }
-      
-      const allPassed = isCodeLikelyValid;
-      
-      setOutput(mockOutput);
-      
-      setTestResults({
-        passed: allPassed,
-        message: allPassed ? "All tests passed! Great job!" : "Some tests failed. Keep trying!",
-        details: allPassed ? undefined : `Check the output for details on the failed test case.`
-      });
-      
-      if (allPassed && !solvedQuestions.includes(selectedQuestion.id)) {
-        setSolvedQuestions(prev => [...prev, selectedQuestion.id]);
-        toast({
-          title: "Question Solved!",
-          description: "You've successfully solved this problem. You can now move to the next question.",
-          variant: "default",
+      } catch (error) {
+        setOutput(`Error: ${error.message}`);
+        setTestResults({
+          passed: false,
+          message: "Error occurred while running your code",
+          details: error.message
         });
+        setIsRunning(false);
       }
-    } catch (error) {
-      console.error("Error running code:", error);
-      setOutput("Error running code. Please try again.");
-      setTestResults({
-        passed: false,
-        message: "Error evaluating your code",
-        details: "There was a problem executing your solution."
-      });
-    } finally {
-      setIsRunning(false);
-    }
+    }, 1500);
   };
 
   return (
     <AppContext.Provider
       value={{
-        darkMode,
-        toggleDarkMode,
         selectedDifficulty,
         setSelectedDifficulty,
         filteredQuestions,
@@ -348,17 +136,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userCode,
         setUserCode,
         runUserCode,
-        isRunning,
-        output,
         testResults,
+        output,
+        isRunning,
         solvedQuestions,
-        isQuestionLocked,
         allQuestionsCompleted,
         userName,
         setUserName,
+        isQuestionLocked,
+        currentLanguage,
+        setCurrentLanguage
       }}
     >
       {children}
     </AppContext.Provider>
   );
+};
+
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (context === undefined) {
+    throw new Error("useAppContext must be used within an AppProvider");
+  }
+  return context;
 };

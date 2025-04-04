@@ -16,7 +16,8 @@ const TestResults = () => {
     selectedQuestion, 
     userName, 
     setUserName,
-    allQuestionsCompleted
+    allQuestionsCompleted,
+    currentLanguage
   } = useAppContext();
   
   const [nameInput, setNameInput] = useState("");
@@ -86,12 +87,34 @@ const TestResults = () => {
     }
   };
   
+  // Get terminal theme color based on language
+  const getTerminalThemeColor = () => {
+    const colors = {
+      "Python": "bg-blue-950/30",
+      "JavaScript": "bg-yellow-900/30",
+      "TypeScript": "bg-blue-900/30",
+      "Java": "bg-red-900/30",
+      "Go": "bg-cyan-900/30",
+      "C#": "bg-purple-900/30",
+      "Ruby": "bg-red-800/30",
+      "Swift": "bg-orange-900/30",
+      "Kotlin": "bg-purple-900/30",
+      "PHP": "bg-indigo-900/30",
+      "Rust": "bg-orange-950/30", 
+      "SQL": "bg-gray-900/30",
+      "R": "bg-blue-900/30",
+      "Dart": "bg-cyan-900/30"
+    };
+    
+    return colors[currentLanguage] || "bg-zinc-50 dark:bg-zinc-800/50";
+  };
+  
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-4 border-b border-zinc-100 flex items-center justify-between dark:border-zinc-800">
         <div className="flex items-center">
           <TerminalIcon className="h-4 w-4 mr-2 text-zinc-700 dark:text-zinc-300" />
-          <h2 className="font-medium text-zinc-900 dark:text-zinc-100">Test Results</h2>
+          <h2 className="font-medium text-zinc-900 dark:text-zinc-100">{currentLanguage} Output</h2>
         </div>
         {testResults && !testResults.passed && (
           <Button 
@@ -134,7 +157,7 @@ const TestResults = () => {
       
         {output ? (
           <div>
-            <pre className="font-mono text-sm whitespace-pre-wrap bg-zinc-50 p-4 rounded-xl dark:bg-zinc-800/50">{output}</pre>
+            <pre className={`font-mono text-sm whitespace-pre-wrap p-4 rounded-xl ${getTerminalThemeColor()}`}>{output}</pre>
             
             <AnimatePresence>
               {testResults && (
@@ -195,7 +218,7 @@ const TestResults = () => {
         ) : (
           <div className="text-zinc-500 text-sm flex flex-col items-center justify-center h-full p-4 dark:text-zinc-400">
             <TerminalIcon className="h-12 w-12 mb-4 text-zinc-300 dark:text-zinc-700" />
-            <p className="text-center">Run your code to see the test results here</p>
+            <p className="text-center">Run your {currentLanguage} code to see the test results here</p>
             <p className="text-center text-xs mt-2">Some test cases will be hidden like in real coding challenges</p>
           </div>
         )}

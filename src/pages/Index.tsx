@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { AppProvider, useAppContext } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
 import QuestionPanel from "@/components/QuestionPanel";
@@ -36,9 +36,15 @@ const Index = ({ language = "Python" }: IndexProps) => {
 };
 
 const IndexContent = ({ isMobile, language }: { isMobile: boolean, language: string }) => {
-  const { allQuestionsCompleted, userName } = useAppContext();
+  const { allQuestionsCompleted, userName, setCurrentLanguage } = useAppContext();
   const { user } = useUser();
-  const [showCertificate, setShowCertificate] = useState(false);
+  const [showCertificate, setShowCertificate] = React.useState(false);
+  
+  // Set current language when component mounts or language changes
+  useEffect(() => {
+    setCurrentLanguage(language);
+    console.log("Setting current language to:", language);
+  }, [language, setCurrentLanguage]);
   
   // Show certificate when all questions are completed
   useEffect(() => {
