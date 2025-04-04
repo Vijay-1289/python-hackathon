@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { SearchIcon, CheckIcon, LockIcon } from "lucide-react";
@@ -24,7 +23,6 @@ const QuestionPanel = () => {
   
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Filter questions based on search query
   const displayedQuestions = useMemo(() => 
     filteredQuestions.filter(question => 
       question.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -32,7 +30,6 @@ const QuestionPanel = () => {
     [filteredQuestions, searchQuery]
   );
   
-  // Calculate question counts by difficulty
   const questionCounts = useMemo(() => {
     const counts = {
       beginner: 0,
@@ -161,17 +158,18 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
   isQuestionLocked,
   currentLanguage
 }) => {
-  // Group questions by categories based on language
+  type CategoryGroups = {
+    [key: string]: any[];
+  };
+  
   const groupedQuestions = useMemo(() => {
-    // Default categories
-    let categories = {
+    let categories: CategoryGroups = {
       "Basics": questions.filter(q => q.id % 10 === 1),
       "Strings": questions.filter(q => q.id % 10 === 2 || q.id % 10 === 3),
       "Arrays": questions.filter(q => q.id % 10 === 4 || q.id % 10 === 5),
       "Advanced": questions.filter(q => q.id % 10 >= 6)
     };
     
-    // Language-specific categorization
     if (currentLanguage === "JavaScript" || currentLanguage === "TypeScript") {
       categories = {
         "Basics": questions.filter(q => q.id % 15 <= 3),
