@@ -38,9 +38,9 @@ const LanguageHeader = ({ language }: LanguageHeaderProps) => {
   };
   
   return (
-    <div className="border-b backdrop-blur-md py-3">
+    <div className="border-b backdrop-blur-md py-3 bg-white/80 dark:bg-black/20">
       <div className="container flex items-center justify-between">
-        <h1 className="text-xl font-semibold">
+        <h1 className="text-xl font-semibold tracking-tight">
           {language} Coding Challenge
           <Badge className={`ml-2 ${getBadgeColor()}`}>{language}</Badge>
         </h1>

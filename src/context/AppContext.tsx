@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Question, allQuestions } from "@/data/questions";
 import { languageQuestions } from "@/data/languageQuestions";
+import { toast } from "@/hooks/use-toast";
 
 interface AppContextType {
   selectedDifficulty: string;
@@ -22,6 +23,7 @@ interface AppContextType {
   isQuestionLocked: (questionId: number) => boolean;
   currentLanguage: string;
   setCurrentLanguage: (language: string) => void;
+  unlockNextQuestion: (currentQuestionId: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -36,6 +38,7 @@ export const AppProvider = ({ children }) => {
   const [solvedQuestions, setSolvedQuestions] = useState<number[]>([]);
   const [userName, setUserName] = useState("");
   const [currentLanguage, setCurrentLanguage] = useState("Python");
+  const [hasShownInitialHelp, setHasShownInitialHelp] = useState(false);
 
   // Get questions based on current language
   const getQuestionsForLanguage = () => {
@@ -65,6 +68,24 @@ export const AppProvider = ({ children }) => {
     return !solvedQuestions.includes(prevQuestion.id);
   };
 
+  // Function to unlock the next question after solving the current one
+  const unlockNextQuestion = (currentQuestionId: number) => {
+    const questions = getQuestionsForLanguage();
+    const currentIndex = questions.findIndex(q => q.id === currentQuestionId);
+    
+    if (currentIndex !== -1 && currentIndex < questions.length - 1) {
+      const nextQuestion = questions[currentIndex + 1];
+      
+      // Add a small delay to show the success animation first
+      setTimeout(() => {
+        toast({
+          title: "New challenge unlocked! 🎉",
+          description: `You've unlocked "${nextQuestion.title}"`,
+        });
+      }, 1500);
+    }
+  };
+
   // Set initial question based on difficulty
   useEffect(() => {
     if (filteredQuestions.length > 0 && !selectedQuestion) {
@@ -79,6 +100,19 @@ export const AppProvider = ({ children }) => {
       setUserCode(selectedQuestion.starterCode);
     }
   }, [selectedQuestion]);
+
+  // Show initial help tooltip
+  useEffect(() => {
+    if (!hasShownInitialHelp && selectedQuestion) {
+      setTimeout(() => {
+        toast({
+          title: "Welcome to CodeMaster!",
+          description: "Solve the challenge and click 'Run Code' to test your solution.",
+        });
+        setHasShownInitialHelp(true);
+      }, 1000);
+    }
+  }, [selectedQuestion, hasShownInitialHelp]);
 
   // Check if all questions are completed
   const allQuestionsCompleted = solvedQuestions.length === getQuestionsForLanguage().length;
@@ -110,6 +144,9 @@ export const AppProvider = ({ children }) => {
         // If tests passed, add question to solved list
         if (passed && selectedQuestion && !solvedQuestions.includes(selectedQuestion.id)) {
           setSolvedQuestions([...solvedQuestions, selectedQuestion.id]);
+          
+          // Unlock next question
+          unlockNextQuestion(selectedQuestion.id);
         }
         
         setIsRunning(false);
@@ -145,7 +182,8 @@ export const AppProvider = ({ children }) => {
         setUserName,
         isQuestionLocked,
         currentLanguage,
-        setCurrentLanguage
+        setCurrentLanguage,
+        unlockNextQuestion
       }}
     >
       {children}

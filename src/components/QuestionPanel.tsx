@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { SearchIcon, CheckIcon, LockIcon } from "lucide-react";
@@ -17,7 +18,8 @@ const QuestionPanel = () => {
     selectedQuestion, 
     setSelectedQuestion,
     solvedQuestions,
-    isQuestionLocked
+    isQuestionLocked,
+    currentLanguage
   } = useAppContext();
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,15 +48,15 @@ const QuestionPanel = () => {
   }, []);
   
   return (
-    <div className="flex flex-col h-full border rounded-lg bg-card">
-      <div className="p-4 border-b">
-        <div className="flex items-center space-x-2">
+    <div className="flex flex-col h-full border rounded-2xl bg-card">
+      <div className="p-4 border-b bg-zinc-50 dark:bg-zinc-900">
+        <div className="flex items-center space-x-2 rounded-full border bg-white dark:bg-zinc-800 px-3 py-1 shadow-sm">
           <SearchIcon className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9"
+            className="h-7 bg-transparent border-none shadow-none focus-visible:ring-0 px-0"
           />
         </div>
       </div>
@@ -65,10 +67,10 @@ const QuestionPanel = () => {
         className="flex-1 flex flex-col"
       >
         <div className="px-4 pt-2">
-          <TabsList className="w-full">
+          <TabsList className="w-full bg-zinc-100 dark:bg-zinc-800/50 rounded-full p-1">
             <TabsTrigger 
               value="beginner" 
-              className="flex-1"
+              className="flex-1 rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
               onClick={() => setSelectedDifficulty("beginner")}
             >
               Beginner
@@ -80,7 +82,7 @@ const QuestionPanel = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="intermediate" 
-              className="flex-1"
+              className="flex-1 rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
               onClick={() => setSelectedDifficulty("intermediate")}
             >
               Intermediate
@@ -92,7 +94,7 @@ const QuestionPanel = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="pro" 
-              className="flex-1"
+              className="flex-1 rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
               onClick={() => setSelectedDifficulty("pro")}
             >
               Pro
@@ -113,6 +115,7 @@ const QuestionPanel = () => {
               setSelectedQuestion={setSelectedQuestion}
               solvedQuestions={solvedQuestions}
               isQuestionLocked={isQuestionLocked}
+              currentLanguage={currentLanguage}
             />
           </TabsContent>
           <TabsContent value="intermediate" className="h-full m-0">
@@ -122,6 +125,7 @@ const QuestionPanel = () => {
               setSelectedQuestion={setSelectedQuestion}
               solvedQuestions={solvedQuestions}
               isQuestionLocked={isQuestionLocked}
+              currentLanguage={currentLanguage}
             />
           </TabsContent>
           <TabsContent value="pro" className="h-full m-0">
@@ -131,6 +135,7 @@ const QuestionPanel = () => {
               setSelectedQuestion={setSelectedQuestion}
               solvedQuestions={solvedQuestions}
               isQuestionLocked={isQuestionLocked}
+              currentLanguage={currentLanguage}
             />
           </TabsContent>
         </div>
@@ -145,6 +150,7 @@ interface QuestionsTabProps {
   setSelectedQuestion: (question: any) => void;
   solvedQuestions: number[];
   isQuestionLocked: (questionId: number) => boolean;
+  currentLanguage: string;
 }
 
 const QuestionsTab: React.FC<QuestionsTabProps> = ({ 
@@ -152,34 +158,37 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
   selectedQuestion, 
   setSelectedQuestion,
   solvedQuestions,
-  isQuestionLocked
+  isQuestionLocked,
+  currentLanguage
 }) => {
-  // Group questions by categories
+  // Group questions by categories based on language
   const groupedQuestions = useMemo(() => {
-    const basicOperations = questions.filter(q => q.id >= 1 && q.id <= 14);
-    const loopsAndLists = questions.filter(q => q.id >= 15 && q.id <= 30);
-    const stringsAndDicts = questions.filter(q => q.id >= 31 && q.id <= 45);
-    const functionsAndTuples = questions.filter(q => q.id >= 46 && q.id <= 49);
-    
-    const recursionAndFunctions = questions.filter(q => q.id >= 50 && q.id <= 64);
-    const dataStructures = questions.filter(q => q.id >= 65 && q.id <= 79);
-    
-    const algorithms = questions.filter(q => q.id >= 80 && q.id <= 94);
-    const oop = questions.filter(q => q.id >= 95 && q.id <= 104);
-    const advanced = questions.filter(q => q.id >= 105 && q.id <= 114);
-    
-    return {
-      basicOperations,
-      loopsAndLists,
-      stringsAndDicts,
-      functionsAndTuples,
-      recursionAndFunctions,
-      dataStructures,
-      algorithms,
-      oop,
-      advanced
+    // Default categories
+    let categories = {
+      "Basics": questions.filter(q => q.id % 10 === 1),
+      "Strings": questions.filter(q => q.id % 10 === 2 || q.id % 10 === 3),
+      "Arrays": questions.filter(q => q.id % 10 === 4 || q.id % 10 === 5),
+      "Advanced": questions.filter(q => q.id % 10 >= 6)
     };
-  }, [questions]);
+    
+    // Language-specific categorization
+    if (currentLanguage === "JavaScript" || currentLanguage === "TypeScript") {
+      categories = {
+        "Basics": questions.filter(q => q.id % 15 <= 3),
+        "Arrays & Strings": questions.filter(q => q.id % 15 > 3 && q.id % 15 <= 8),
+        "Functions": questions.filter(q => q.id % 15 > 8 && q.id % 15 <= 12),
+        "Advanced": questions.filter(q => q.id % 15 > 12)
+      };
+    } else if (currentLanguage === "SQL") {
+      categories = {
+        "Queries": questions.filter(q => q.id % 12 <= 4),
+        "Joins": questions.filter(q => q.id % 12 > 4 && q.id % 12 <= 8),
+        "Advanced": questions.filter(q => q.id % 12 > 8)
+      };
+    }
+    
+    return categories;
+  }, [questions, currentLanguage]);
   
   if (questions.length === 0) {
     return (
@@ -189,128 +198,28 @@ const QuestionsTab: React.FC<QuestionsTabProps> = ({
     );
   }
 
-  // Determine which groups to show based on question difficulty
-  const difficultyCategory = questions[0]?.difficulty || 'beginner';
-  
   return (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-6">
-        {difficultyCategory === 'beginner' && (
-          <>
-            {groupedQuestions.basicOperations.length > 0 && (
-              <QuestionGroup 
-                title="Basic Python Operations" 
-                questions={groupedQuestions.basicOperations}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-            
-            {groupedQuestions.loopsAndLists.length > 0 && (
-              <QuestionGroup 
-                title="Loops and Lists" 
-                questions={groupedQuestions.loopsAndLists}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-            
-            {groupedQuestions.stringsAndDicts.length > 0 && (
-              <QuestionGroup 
-                title="Strings and Dictionaries" 
-                questions={groupedQuestions.stringsAndDicts}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-            
-            {groupedQuestions.functionsAndTuples.length > 0 && (
-              <QuestionGroup 
-                title="Basic Functions and Tuples" 
-                questions={groupedQuestions.functionsAndTuples}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-          </>
-        )}
-        
-        {difficultyCategory === 'intermediate' && (
-          <>
-            {groupedQuestions.recursionAndFunctions.length > 0 && (
-              <QuestionGroup 
-                title="Recursion and Advanced Functions" 
-                questions={groupedQuestions.recursionAndFunctions}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-            
-            {groupedQuestions.dataStructures.length > 0 && (
-              <QuestionGroup 
-                title="Lists, Sets, and Dictionaries" 
-                questions={groupedQuestions.dataStructures}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-          </>
-        )}
-        
-        {difficultyCategory === 'pro' && (
-          <>
-            {groupedQuestions.algorithms.length > 0 && (
-              <QuestionGroup 
-                title="Algorithms" 
-                questions={groupedQuestions.algorithms}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-            
-            {groupedQuestions.oop.length > 0 && (
-              <QuestionGroup 
-                title="Object-Oriented Programming" 
-                questions={groupedQuestions.oop}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-            
-            {groupedQuestions.advanced.length > 0 && (
-              <QuestionGroup 
-                title="Optimization and Advanced Topics" 
-                questions={groupedQuestions.advanced}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                solvedQuestions={solvedQuestions}
-                isQuestionLocked={isQuestionLocked}
-              />
-            )}
-          </>
+        {Object.entries(groupedQuestions).map(([category, categoryQuestions]) => 
+          categoryQuestions.length > 0 && (
+            <QuestionGroup 
+              key={category}
+              title={category} 
+              questions={categoryQuestions}
+              selectedQuestion={selectedQuestion}
+              setSelectedQuestion={setSelectedQuestion}
+              solvedQuestions={solvedQuestions}
+              isQuestionLocked={isQuestionLocked}
+            />
+          )
         )}
         
         {questions.filter(q => 
           !Object.values(groupedQuestions).flat().some(gq => gq.id === q.id)
         ).length > 0 && (
           <QuestionGroup 
-            title="Other Questions" 
+            title="Other Challenges" 
             questions={questions.filter(q => 
               !Object.values(groupedQuestions).flat().some(gq => gq.id === q.id)
             )}
@@ -377,26 +286,43 @@ const QuestionGroup: React.FC<QuestionGroupProps> = ({
           const solved = solvedQuestions.includes(question.id);
           
           return (
-            <Button
+            <div
               key={question.id}
-              variant="ghost"
               className={cn(
-                "w-full justify-start text-left font-normal h-auto py-2 px-3",
-                selectedQuestion?.id === question.id && "bg-accent",
-                locked && "opacity-50 cursor-not-allowed"
+                "relative group rounded-xl overflow-hidden transition-all",
+                locked && "opacity-70"
               )}
-              onClick={() => handleSelectQuestion(question)}
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  {locked && <LockIcon className="h-3 w-3 text-muted-foreground" />}
-                  <span className="text-sm">{question.title}</span>
-                </div>
-                {solved && (
-                  <CheckIcon className="h-4 w-4 text-green-500" />
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-left font-normal h-auto py-3 px-4 rounded-xl transition-all",
+                  selectedQuestion?.id === question.id && "bg-accent text-accent-foreground",
+                  solved && "bg-green-50 dark:bg-green-900/20",
+                  locked && "cursor-not-allowed"
                 )}
-              </div>
-            </Button>
+                onClick={() => handleSelectQuestion(question)}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    {locked ? (
+                      <div className="shrink-0 rounded-full w-6 h-6 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500">
+                        <LockIcon className="h-3.5 w-3.5" />
+                      </div>
+                    ) : solved ? (
+                      <div className="shrink-0 rounded-full w-6 h-6 bg-green-100 dark:bg-green-800 flex items-center justify-center text-green-600 dark:text-green-200">
+                        <CheckIcon className="h-3.5 w-3.5" />
+                      </div>
+                    ) : (
+                      <div className="shrink-0 rounded-full w-6 h-6 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
+                        {question.id % 100}
+                      </div>
+                    )}
+                    <span className="text-sm">{question.title}</span>
+                  </div>
+                </div>
+              </Button>
+            </div>
           );
         })}
       </div>
